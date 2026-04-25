@@ -1,0 +1,51 @@
+# KnowledgeSpider — System Configuration
+# All runtime settings are defined here. No hardcoded values in source code.
+
+[crawler]
+max_depth            = 3
+max_sources          = 200
+time_limit_minutes   = 60
+crawl_delay_seconds  = 2.0
+max_urls_per_query   = 5
+respect_robots       = true
+trusted_only         = false
+
+[nlp]
+min_content_words      = 150
+relevance_threshold    = 0.45
+max_topics_per_page    = 8
+summary_sentence_count = 5
+
+[scoring]
+domain_weight    = 0.35
+content_weight   = 0.15
+relevance_weight = 0.35
+freshness_weight = 0.15
+
+[trusted_domains]
+domains = [
+  "wikipedia.org",
+  "developer.mozilla.org",
+  "arxiv.org",
+  "stackoverflow.com",
+  "rfc-editor.org",
+  "docs.python.org",
+  "github.com",
+  "geeksforgeeks.org"
+]
+
+[domain_scores]
+"wikipedia.org"         = 1.0
+"arxiv.org"             = 0.95
+"rfc-editor.org"        = 0.95
+"developer.mozilla.org" = 0.90
+"stackoverflow.com"     = 0.80
+"docs.python.org"       = 0.85
+"github.com"            = 0.70
+"geeksforgeeks.org"     = 0.65
+"medium.com"            = 0.50
+"default"               = 0.40
+
+[export]
+output_dir     = "./output"
+default_format = "json"

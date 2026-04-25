@@ -1,0 +1,26 @@
+2026-04-25 20:27:50.963 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_d9360809-fa24-4d0a-8cfd-bf73ac560043.log
+2026-04-25 20:27:50.974 | DEBUG    | knowledge_spider.storage.database:create_session:79 - Session created: d9360809-fa24-4d0a-8cfd-bf73ac560043 (topic=HTTP Protocol)
+2026-04-25 20:27:50.974 | INFO     | knowledge_spider.core.session:create_session:64 - New session created | id=d9360809... topic='HTTP Protocol' depth=0 max_sources=1
+2026-04-25 20:27:50.977 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:27:50.987 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_d9360809-fa24-4d0a-8cfd-bf73ac560043.log
+2026-04-25 20:27:50.987 | INFO     | knowledge_spider.core.session:load_session:93 - Session loaded | id=d9360809... topic='HTTP Protocol' status=running
+2026-04-25 20:27:50.994 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'HTTP Protocol' depth=0
+2026-04-25 20:27:50.994 | INFO     | knowledge_spider.crawler.orchestrator:_seed_initial_topic:70 - Seeded root topic: 'HTTP Protocol'
+2026-04-25 20:27:50.997 | INFO     | knowledge_spider.crawler.orchestrator:run:195 - Starting Orchestrator for session d9360809...
+2026-04-25 20:27:50.999 | DEBUG    | knowledge_spider.storage.database:update_session_status:117 - Session d9360809-fa24-4d0a-8cfd-bf73ac560043 status -> running
+2026-04-25 20:27:51.000 | DEBUG    | knowledge_spider.core.session:save_session_state:116 - Session d9360809... state saved -> running
+2026-04-25 20:27:51.001 | INFO     | knowledge_spider.crawler.orchestrator:run:214 - Processing Topic: 'HTTP Protocol' (Depth 0)
+2026-04-25 20:27:51.007 | DEBUG    | knowledge_spider.query.query_engine:generate_queries:42 - Generated 8 queries for topic 'HTTP Protocol'
+2026-04-25 20:27:51.480 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robot_parser:65 - Fetched and parsed robots.txt for https://en.wikipedia.org
+2026-04-25 20:27:51.981 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:72 - Fetching: https://en.wikipedia.org/wiki/HTTP
+2026-04-25 20:27:53.671 | DEBUG    | knowledge_spider.crawler.parser:parse_page:79 - Parsed https://en.wikipedia.org/wiki/HTTP -> 9826 words
+2026-04-25 20:27:53.673 | DEBUG    | knowledge_spider.nlp.extractor:get_nlp:31 - Loading spaCy model 'en_core_web_sm'...
+2026-04-25 20:27:56.645 | DEBUG    | knowledge_spider.nlp.extractor:extract_terms:120 - Extracted 15 top terms from text
+2026-04-25 20:27:59.354 | DEBUG    | knowledge_spider.nlp.summariser:generate_summary:71 - Generated 1-sentence summary from text
+2026-04-25 20:27:59.355 | DEBUG    | knowledge_spider.scoring.scorer:calculate_quality_score:91 - Score for en.wikipedia.org (words=9826, depth=0): 0.716 [C:0.51, R:1.00, A:0.40]
+2026-04-25 20:27:59.362 | DEBUG    | knowledge_spider.storage.database:create_source:250 - Source saved: https://en.wikipedia.org/wiki/HTTP (score=0.72)
+2026-04-25 20:27:59.367 | DEBUG    | knowledge_spider.storage.database:bulk_insert_terms:352 - Bulk inserted 15 terms for topic_id=1
+2026-04-25 20:27:59.369 | DEBUG    | knowledge_spider.storage.database:update_session_status:117 - Session d9360809-fa24-4d0a-8cfd-bf73ac560043 status -> running
+2026-04-25 20:27:59.369 | DEBUG    | knowledge_spider.core.session:save_session_state:116 - Session d9360809... state saved -> running
+2026-04-25 20:27:59.369 | INFO     | knowledge_spider.crawler.orchestrator:run:202 - Reached max sources limit (1). Stopping.
+2026-04-25 20:27:59.369 | INFO     | knowledge_spider.crawler.orchestrator:run:252 - Orchestrator finished. Collected 1 sources.

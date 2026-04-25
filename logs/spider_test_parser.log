@@ -1,0 +1,11 @@
+2026-04-25 20:06:23.086 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_parser.log
+2026-04-25 20:06:23.991 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
+2026-04-25 20:06:23.992 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
+2026-04-25 20:06:24.001 | DEBUG    | knowledge_spider.crawler.parser:parse_page:91 - Parsed page 'KnowledgeSpider Test Page' (26 words)
+2026-04-25 20:06:24.003 | DEBUG    | knowledge_spider.crawler.parser:extract_outbound_links:155 - Extracted 3 valid links from https://docs.python.org/3/
+2026-04-25 20:12:48.995 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_parser.log
+2026-04-25 20:12:49.137 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
+2026-04-25 20:12:49.138 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
+2026-04-25 20:12:49.140 | DEBUG    | knowledge_spider.crawler.parser:parse_page:79 - Parsed https://docs.python.org/3/tutorial/ -> 19 words
+2026-04-25 20:12:49.141 | DEBUG    | knowledge_spider.crawler.parser:extract_outbound_links:158 - Found 4 outbound links on https://docs.python.org/3/tutorial/
+2026-04-25 20:12:49.143 | DEBUG    | knowledge_spider.crawler.parser:extract_outbound_links:158 - Found 3 outbound links on https://docs.python.org/3/tutorial/

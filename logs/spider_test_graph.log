@@ -1,0 +1,65 @@
+2026-04-25 20:29:56.440 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_graph.log
+2026-04-25 20:29:57.261 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:29:57.271 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Artificial Intelligence' depth=0
+2026-04-25 20:29:57.274 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Machine Learning' depth=1
+2026-04-25 20:29:57.275 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Neural Networks' depth=2
+2026-04-25 20:29:57.277 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Deep Learning' depth=3
+2026-04-25 20:29:57.278 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Data Science' depth=1
+2026-04-25 20:29:57.284 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 1 -> 2 (w=0.90)
+2026-04-25 20:29:57.286 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 1 -> 5 (w=0.80)
+2026-04-25 20:29:57.287 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 2 -> 3 (w=0.85)
+2026-04-25 20:29:57.289 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 3 -> 4 (w=0.95)
+2026-04-25 20:29:57.291 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 2 -> 4 (w=0.70)
+2026-04-25 20:29:57.294 | DEBUG    | knowledge_spider.knowledge.graph:build_graph:65 - Knowledge Graph built: 5 nodes, 0 edges.
+2026-04-25 20:30:13.939 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_graph.log
+2026-04-25 20:30:14.535 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:30:14.547 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Artificial Intelligence' depth=0
+2026-04-25 20:30:14.548 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Machine Learning' depth=1
+2026-04-25 20:30:14.550 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Neural Networks' depth=2
+2026-04-25 20:30:14.551 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Deep Learning' depth=3
+2026-04-25 20:30:14.554 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Data Science' depth=1
+2026-04-25 20:30:14.559 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 1 -> 2 (w=0.90)
+2026-04-25 20:30:14.561 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 1 -> 5 (w=0.80)
+2026-04-25 20:30:14.563 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 2 -> 3 (w=0.85)
+2026-04-25 20:30:14.564 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 3 -> 4 (w=0.95)
+2026-04-25 20:30:14.566 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 2 -> 4 (w=0.70)
+2026-04-25 20:30:14.569 | DEBUG    | knowledge_spider.knowledge.graph:build_graph:65 - Knowledge Graph built: 5 nodes, 0 edges.
+2026-04-25 20:30:42.593 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_graph.log
+2026-04-25 20:30:43.076 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:30:43.088 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Artificial Intelligence' depth=0
+2026-04-25 20:30:43.090 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Machine Learning' depth=1
+2026-04-25 20:30:43.091 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Neural Networks' depth=2
+2026-04-25 20:30:43.093 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Deep Learning' depth=3
+2026-04-25 20:30:43.094 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Data Science' depth=1
+2026-04-25 20:30:43.099 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 1 -> 2 (w=0.90)
+2026-04-25 20:30:43.101 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 1 -> 5 (w=0.80)
+2026-04-25 20:30:43.103 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 2 -> 3 (w=0.85)
+2026-04-25 20:30:43.105 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 3 -> 4 (w=0.95)
+2026-04-25 20:30:43.107 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 2 -> 4 (w=0.70)
+2026-04-25 20:30:43.109 | DEBUG    | knowledge_spider.knowledge.graph:build_graph:65 - Knowledge Graph built: 5 nodes, 0 edges.
+2026-04-25 20:31:17.993 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_graph.log
+2026-04-25 20:31:18.499 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:31:18.510 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Artificial Intelligence' depth=0
+2026-04-25 20:31:18.513 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Machine Learning' depth=1
+2026-04-25 20:31:18.514 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Neural Networks' depth=2
+2026-04-25 20:31:18.516 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Deep Learning' depth=3
+2026-04-25 20:31:18.517 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Data Science' depth=1
+2026-04-25 20:31:18.523 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 1 -> 2 (w=0.90)
+2026-04-25 20:31:18.525 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 1 -> 5 (w=0.80)
+2026-04-25 20:31:18.527 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 2 -> 3 (w=0.85)
+2026-04-25 20:31:18.530 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 3 -> 4 (w=0.95)
+2026-04-25 20:31:18.531 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: 2 -> 4 (w=0.70)
+2026-04-25 20:31:18.534 | DEBUG    | knowledge_spider.knowledge.graph:build_graph:65 - Knowledge Graph built: 5 nodes, 0 edges.
+2026-04-25 20:32:33.328 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_graph.log
+2026-04-25 20:32:33.847 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:32:33.858 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Artificial Intelligence' depth=0
+2026-04-25 20:32:33.862 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Machine Learning' depth=1
+2026-04-25 20:32:33.864 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Neural Networks' depth=2
+2026-04-25 20:32:33.866 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Deep Learning' depth=3
+2026-04-25 20:32:33.868 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Data Science' depth=1
+2026-04-25 20:32:33.876 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: Artificial Intelligence -> Machine Learning (w=0.90)
+2026-04-25 20:32:33.879 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: Artificial Intelligence -> Data Science (w=0.80)
+2026-04-25 20:32:33.881 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: Machine Learning -> Neural Networks (w=0.85)
+2026-04-25 20:32:33.883 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: Neural Networks -> Deep Learning (w=0.95)
+2026-04-25 20:32:33.885 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: Machine Learning -> Deep Learning (w=0.70)
+2026-04-25 20:32:33.888 | DEBUG    | knowledge_spider.knowledge.graph:build_graph:62 - Knowledge Graph built: 5 nodes, 5 edges.

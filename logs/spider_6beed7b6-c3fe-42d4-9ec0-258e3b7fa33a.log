@@ -1,0 +1,17 @@
+2026-04-25 19:59:26.828 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_6beed7b6-c3fe-42d4-9ec0-258e3b7fa33a.log
+2026-04-25 19:59:26.831 | DEBUG    | knowledge_spider.storage.database:create_session:79 - Session created: 6beed7b6-c3fe-42d4-9ec0-258e3b7fa33a (topic=HTTP)
+2026-04-25 19:59:26.831 | INFO     | knowledge_spider.core.session:create_session:64 - New session created | id=6beed7b6... topic='HTTP' depth=3 max_sources=200
+2026-04-25 19:59:26.833 | DEBUG    | knowledge_spider.storage.database:update_session_status:117 - Session 6beed7b6-c3fe-42d4-9ec0-258e3b7fa33a status -> paused
+2026-04-25 19:59:26.833 | DEBUG    | knowledge_spider.core.session:save_session_state:116 - Session 6beed7b6... state saved -> paused
+2026-04-25 19:59:26.833 | INFO     | knowledge_spider.core.session:pause_session:140 - Session 6beed7b6... marked PAUSED — resume with --session-id
+2026-04-25 19:59:26.837 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 19:59:26.844 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_6beed7b6-c3fe-42d4-9ec0-258e3b7fa33a.log
+2026-04-25 19:59:26.844 | INFO     | knowledge_spider.core.session:load_session:93 - Session loaded | id=6beed7b6... topic='HTTP' status=paused
+2026-04-25 19:59:26.847 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 19:59:26.850 | DEBUG    | knowledge_spider.core.session:list_sessions:154 - list_sessions: found 2 session(s)
+2026-04-25 19:59:26.856 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'DNS' depth=0
+2026-04-25 19:59:26.858 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 19:59:26.886 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_6beed7b6-c3fe-42d4-9ec0-258e3b7fa33a.log
+2026-04-25 19:59:26.887 | INFO     | knowledge_spider.core.session:load_session:93 - Session loaded | id=6beed7b6... topic='HTTP' status=paused
+2026-04-25 19:59:26.888 | INFO     | knowledge_spider.core.session:assert_resumable:207 - Session 6beed7b6... is resumable (status=paused)
+2026-04-25 19:59:26.891 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db

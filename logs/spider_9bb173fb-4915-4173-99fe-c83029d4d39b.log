@@ -1,0 +1,3 @@
+2026-04-25 19:59:26.907 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_9bb173fb-4915-4173-99fe-c83029d4d39b.log
+2026-04-25 19:59:26.909 | DEBUG    | knowledge_spider.storage.database:create_session:79 - Session created: 9bb173fb-4915-4173-99fe-c83029d4d39b (topic=Machine Learning)
+2026-04-25 19:59:26.909 | INFO     | knowledge_spider.core.session:create_session:64 - New session created | id=9bb173fb... topic='  Machine Learning  ' depth=3 max_sources=200

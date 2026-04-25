@@ -1,0 +1,42 @@
+2026-04-25 20:04:33.413 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_fetcher.log
+2026-04-25 20:04:34.209 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
+2026-04-25 20:04:34.210 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
+2026-04-25 20:04:35.536 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robots_txt:49 - Successfully fetched and parsed robots.txt for en.wikipedia.org
+2026-04-25 20:04:35.537 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:85 - Fetching: https://en.wikipedia.org/wiki/Domain_Name_System
+2026-04-25 20:04:36.455 | WARNING  | knowledge_spider.crawler.fetcher:fetch_page:91 - Fetch failed (HTTP 403): https://en.wikipedia.org/wiki/Domain_Name_System
+2026-04-25 20:05:05.872 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_fetcher.log
+2026-04-25 20:05:06.196 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
+2026-04-25 20:05:06.197 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
+2026-04-25 20:05:07.435 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robots_txt:49 - Successfully fetched and parsed robots.txt for docs.python.org
+2026-04-25 20:05:07.436 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:85 - Fetching: https://docs.python.org/3/library/datetime.html
+2026-04-25 20:05:08.497 | INFO     | knowledge_spider.crawler.fetcher:fetch_page:100 - Successfully fetched 423294 bytes from https://docs.python.org/3/library/datetime.html
+2026-04-25 20:05:09.251 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robots_txt:51 - No robots.txt found for example.com (HTTP 404)
+2026-04-25 20:05:09.252 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:85 - Fetching: https://example.com
+2026-04-25 20:05:09.992 | INFO     | knowledge_spider.crawler.fetcher:fetch_page:100 - Successfully fetched 528 bytes from https://example.com
+2026-04-25 20:05:10.932 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robots_txt:49 - Successfully fetched and parsed robots.txt for en.wikipedia.org
+2026-04-25 20:05:10.932 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:85 - Fetching: https://en.wikipedia.org/wiki/This_Page_Definitely_Does_Not_Exist_123456789
+2026-04-25 20:05:11.833 | WARNING  | knowledge_spider.crawler.fetcher:fetch_page:91 - Fetch failed (HTTP 403): https://en.wikipedia.org/wiki/This_Page_Definitely_Does_Not_Exist_123456789
+2026-04-25 20:05:11.834 | INFO     | knowledge_spider.crawler.robots:is_crawl_allowed:101 - Crawling disallowed by robots.txt for URL: https://en.wikipedia.org/trap/test
+2026-04-25 20:05:11.834 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:73 - Fetch aborted (robots.txt disallowed): https://en.wikipedia.org/trap/test
+2026-04-25 20:10:39.704 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_fetcher.log
+2026-04-25 20:10:40.021 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
+2026-04-25 20:10:40.022 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
+2026-04-25 20:10:40.415 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robot_parser:65 - Fetched and parsed robots.txt for https://en.wikipedia.org
+2026-04-25 20:10:40.916 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:73 - Fetching: https://en.wikipedia.org/wiki/Main_Page
+2026-04-25 20:10:42.206 | WARNING  | knowledge_spider.crawler.fetcher:fetch_page:96 - HTTP error 403 fetching https://en.wikipedia.org/wiki/Main_Page: Client error '403 Forbidden' for url 'https://en.wikipedia.org/wiki/Main_Page'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403
+2026-04-25 20:11:07.442 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_fetcher.log
+2026-04-25 20:11:07.758 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
+2026-04-25 20:11:07.759 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
+2026-04-25 20:11:08.159 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robot_parser:65 - Fetched and parsed robots.txt for https://en.wikipedia.org
+2026-04-25 20:11:08.660 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:72 - Fetching: https://en.wikipedia.org/wiki/Main_Page
+2026-04-25 20:11:11.093 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robot_parser:65 - Fetched and parsed robots.txt for http://wikipedia.org
+2026-04-25 20:11:11.594 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:72 - Fetching: http://wikipedia.org
+2026-04-25 20:11:13.523 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:72 - Fetching: https://en.wikipedia.org/wiki/ThisPageDoesNotExist123456789
+2026-04-25 20:11:14.799 | WARNING  | knowledge_spider.crawler.fetcher:fetch_page:95 - HTTP error 404 fetching https://en.wikipedia.org/wiki/ThisPageDoesNotExist123456789: Client error '404 Not Found' for url 'https://en.wikipedia.org/wiki/ThisPageDoesNotExist123456789'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+2026-04-25 20:11:14.800 | DEBUG    | knowledge_spider.crawler.robots:is_crawl_allowed:111 - robots.txt blocked access to: https://en.wikipedia.org/w/index.php?search=foo
+2026-04-25 20:11:14.800 | WARNING  | knowledge_spider.crawler.fetcher:fetch_page:57 - Fetch skipped: blocked by robots.txt -> https://en.wikipedia.org/w/index.php?search=foo
+2026-04-25 20:11:15.102 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robot_parser:65 - Fetched and parsed robots.txt for https://upload.wikimedia.org
+2026-04-25 20:11:15.603 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:72 - Fetching: https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg
+2026-04-25 20:11:16.633 | WARNING  | knowledge_spider.crawler.fetcher:fetch_page:83 - Fetch skipped: non-text content-type 'image/jpeg' at https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg

@@ -1,0 +1,6 @@
+2026-04-25 20:16:40.660 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_summariser.log
+2026-04-25 20:18:18.584 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_summariser.log
+2026-04-25 20:18:40.542 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
+2026-04-25 20:18:40.543 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
+2026-04-25 20:18:40.546 | DEBUG    | knowledge_spider.nlp.summariser:_ensure_nltk_data:35 - Downloading NLTK punkt_tab tokenizer...
+2026-04-25 20:18:47.485 | DEBUG    | knowledge_spider.nlp.summariser:generate_summary:71 - Generated 2-sentence summary from text

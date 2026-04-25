@@ -1,0 +1,5 @@
+2026-04-25 19:57:53.041 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_cfg.log
+2026-04-25 19:57:53.065 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
+2026-04-25 19:57:53.065 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
+2026-04-25 19:57:53.067 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
+2026-04-25 19:57:53.068 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8

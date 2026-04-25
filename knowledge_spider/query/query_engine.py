@@ -27,19 +27,35 @@ def generate_queries(topic: str) -> list[str]:
     Returns:
         List of generated query strings based on predefined templates.
     """
-    templates = [
-        "what is {topic}",
-        "{topic} explained",
-        "{topic} tutorial",
-        "{topic} protocol",
-        "{topic} examples",
-        "how does {topic} work",
-        "{topic} types",
-        "{topic} RFC",
-    ]
+    from knowledge_spider.utils.lang_detect import detect_script
+    
+    script = detect_script(topic)
+    
+    if script == "ar":
+        templates = [
+            "ما هو {topic}",
+            "شرح {topic}",
+            "دليل {topic}",
+            "{topic} بروتوكول",
+            "أمثلة على {topic}",
+            "كيف يعمل {topic}",
+            "أنواع {topic}",
+            "{topic} بالعربي",
+        ]
+    else:
+        templates = [
+            "what is {topic}",
+            "{topic} explained",
+            "{topic} tutorial",
+            "{topic} protocol",
+            "{topic} examples",
+            "how does {topic} work",
+            "{topic} types",
+            "{topic} RFC",
+        ]
     
     queries = [t.format(topic=topic) for t in templates]
-    logger.debug(f"Generated {len(queries)} queries for topic '{topic}'")
+    logger.debug(f"Generated {len(queries)} queries for topic '{topic}' (script: {script})")
     return queries
 
 
@@ -62,10 +78,8 @@ def extract_domain(url: str) -> str:
 
 def target_sources(topic: str, queries: list[str], config: Config | None = None) -> list[str]:
     """
-    Execute search queries via DuckDuckGo and collect deduplicated URLs.
-
-    Applies `trusted_only` domain filtering if specified in the configuration.
-    Delays between queries to avoid rate-limiting.
+    Execute search queries via DuckDuckGo using a real browser (Playwright) 
+    and collect deduplicated URLs.
 
     Args:
         topic:   The topic being searched.
@@ -75,6 +89,10 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
     Returns:
         A list of deduplicated URLs found across all queries.
     """
+    from playwright.sync_api import sync_playwright
+    import urllib.parse
+    import time
+    
     cfg = config or get_config()
     max_urls = cfg.crawler.max_urls_per_query
     trusted_only = cfg.crawler.trusted_only
@@ -82,32 +100,61 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
     collected_urls: set[str] = set()
     logger.info(f"Targeting sources for '{topic}' using {len(queries)} queries...")
 
-    with DDGS() as ddgs:
+    import sys
+    import asyncio
+    
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+    with sync_playwright() as p:
+        # headless=False so the user can see the browser working!
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context(
+            viewport={"width": 1280, "height": 720},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
+        page = context.new_page()
+        
         for q in queries:
-            logger.debug(f"Executing search: '{q}'")
+            logger.debug(f"Executing search in browser: '{q}'")
             try:
-                # Use duckduckgo-search text search
-                results = ddgs.text(q, max_results=max_urls)
+                # Use the standard DuckDuckGo search page
+                encoded_q = urllib.parse.quote_plus(q)
+                search_url = f"https://duckduckgo.com/?q={encoded_q}"
                 
-                for r in results:
-                    url = r.get("href")
-                    if not url:
+                page.goto(search_url, wait_until="domcontentloaded")
+                # Wait for search results to appear
+                page.wait_for_selector('a[data-testid="result-title-a"]', timeout=10000)
+                time.sleep(1) # brief pause to let user see it
+                
+                # Extract links from the search results
+                links = page.query_selector_all('a[data-testid="result-title-a"]')
+                
+                added_count = 0
+                for link in links:
+                    if added_count >= max_urls:
+                        break
+                        
+                    href = link.get_attribute("href")
+                    if not href or href.startswith("/") or "duckduckgo.com" in href:
                         continue
                         
-                    domain = extract_domain(url)
+                    actual_url = href
+                    domain = extract_domain(actual_url)
                     
                     if trusted_only and not cfg.is_trusted_domain(domain):
-                        logger.debug(f"Dropped untrusted URL: {url}")
                         continue
                         
-                    collected_urls.add(url)
+                    collected_urls.add(actual_url)
+                    added_count += 1
                 
-                # Sleep briefly to avoid DDG rate limits
+                # Sleep briefly based on config
                 time.sleep(cfg.crawler.crawl_delay_seconds)
                 
             except Exception as e:
-                logger.warning(f"Search failed for query '{q}': {e}")
-                time.sleep(cfg.crawler.crawl_delay_seconds * 2)
+                logger.warning(f"Browser search failed for query '{q}': {e}")
+        
+        browser.close()
 
     urls = list(collected_urls)
     logger.info(f"Targeting complete: {len(urls)} unique URLs found for '{topic}'")

@@ -1,122 +1,178 @@
 """
 Module: nlp/extractor.py
-Purpose: Term and topic extraction using spaCy.
-         Analyzes text to extract Named Entities and Noun Chunks,
-         filters out noise (stopwords, punctuation), and returns 
-         a frequency distribution of meaningful terms.
+Purpose: Bilingual (Arabic + English) term extraction using spaCy.
+         - English: en_core_web_sm (Named Entities + Noun Chunks)
+         - Arabic:  spacy.blank("ar") + regex-based word extraction
+         - Mixed pages: splits by script, processes each part separately,
+           then merges results with a language tag prefix.
 Author: KnowledgeSpider Engine
 """
 
 from __future__ import annotations
 
-from collections import Counter
 import re
+from collections import Counter
 
 import spacy
 
+from knowledge_spider.utils.lang_detect import detect_script, split_by_language
 from knowledge_spider.utils.logger import logger
 
-# Lazy-loaded spaCy model to avoid huge boot times if NLP isn't hit immediately
-_NLP = None
+# ── Lazy-loaded models ────────────────────────────────────────────────────────
+_NLP_EN = None   # en_core_web_sm
+_NLP_AR = None   # spacy.blank("ar") — Arabic tokenizer, no vectors needed
 
 
-def get_nlp():
-    """
-    Load and cache the spaCy English model.
-    Downloads the model dynamically if it isn't installed.
-    """
-    global _NLP
-    if _NLP is None:
+def _get_nlp_en():
+    """Load and cache the English spaCy model."""
+    global _NLP_EN
+    if _NLP_EN is None:
         try:
-            logger.debug("Loading spaCy model 'en_core_web_sm'...")
-            _NLP = spacy.load("en_core_web_sm")
+            _NLP_EN = spacy.load("en_core_web_sm")
+            logger.debug("Loaded spaCy model 'en_core_web_sm'")
         except OSError:
-            logger.warning("spaCy model 'en_core_web_sm' not found. Attempting download...")
+            logger.warning("en_core_web_sm not found. Downloading...")
             from spacy.cli import download
             download("en_core_web_sm")
-            _NLP = spacy.load("en_core_web_sm")
-    return _NLP
+            _NLP_EN = spacy.load("en_core_web_sm")
+    return _NLP_EN
 
 
-def clean_term(term: str) -> str:
-    """
-    Normalize a term by lowercasing, stripping extra whitespace, 
-    and removing leading/trailing punctuation.
-    """
+def _get_nlp_ar():
+    """Load and cache the Arabic blank spaCy model (tokenizer only)."""
+    global _NLP_AR
+    if _NLP_AR is None:
+        _NLP_AR = spacy.blank("ar")
+        logger.debug("Loaded spaCy blank Arabic tokenizer")
+    return _NLP_AR
+
+
+# ── Arabic stopwords (common closed-class words) ──────────────────────────────
+_AR_STOPWORDS = {
+    "في", "من", "إلى", "على", "عن", "مع", "هذا", "هذه", "ذلك", "تلك",
+    "هو", "هي", "هم", "هن", "أن", "أو", "و", "ف", "ب", "ل", "ك",
+    "قد", "كان", "كانت", "يكون", "التي", "الذي", "الذين", "اللاتي",
+    "إن", "إذا", "لم", "لا", "ما", "مما", "بما", "عما", "له", "لها",
+    "لهم", "به", "بها", "بهم", "فيه", "فيها", "فيهم", "منه", "منها",
+    "عليه", "عليها", "عليهم", "كل", "بعض", "أي", "حتى", "عند", "بعد",
+    "قبل", "خلال", "حول", "كما", "أيضا", "فقط", "هناك", "حيث",
+}
+
+_AR_WORD_PATTERN = re.compile(r'[\u0600-\u06FF]{3,}')  # Arabic words ≥ 3 chars
+
+
+def clean_term_en(term: str) -> str:
+    """Normalize an English term."""
     term = term.lower().strip()
-    # Remove leading/trailing non-alphanumeric characters
     term = re.sub(r"^[^a-z0-9]+|[^a-z0-9]+$", "", term)
     return term
 
 
-def is_valid_term(term: str, nlp_vocab) -> bool:
-    """
-    Check if a term is valid for extraction.
-    Must be > 2 chars, not a pure number, and not a registered stopword.
-    """
-    if len(term) < 3:
-        return False
-    if term.isnumeric():
-        return False
-    
-    # Check if any individual word in a multi-word phrase is a strict stopword
-    # Or if the exact phrase is a stopword
-    words = term.split()
-    if all(w in nlp_vocab for w in words):
-        return False
-        
-    return True
+def clean_term_ar(term: str) -> str:
+    """Normalize an Arabic term (strip diacritics, strip whitespace)."""
+    term = term.strip()
+    # Remove Arabic diacritics (tashkeel: U+064B → U+065F)
+    term = re.sub(r'[\u064B-\u065F]', '', term)
+    return term
 
 
-def extract_terms(text: str, top_n: int = 15) -> dict[str, int]:
-    """
-    Extract key terms (Named Entities and Noun Chunks) from a block of text.
-
-    Args:
-        text:  The clean text content to analyze.
-        top_n: Maximum number of terms to return.
-
-    Returns:
-        A dictionary mapping the normalized term to its occurrence count.
-        e.g. {"domain name system": 5, "ip address": 3}
-    """
-    if not text or len(text.strip()) == 0:
+def _extract_en(text: str, top_n: int) -> dict[str, int]:
+    """Extract English terms using spaCy NER + noun chunks."""
+    if not text.strip():
         return {}
 
-    nlp = get_nlp()
-    # Increase max_length for very large web pages (default is 1,000,000)
+    nlp = _get_nlp_en()
     nlp.max_length = max(nlp.max_length, len(text) + 10000)
-
-    # Process text
     doc = nlp(text)
-    
-    # We will collect noun chunks and named entities
-    raw_terms = []
 
-    # 1. Named Entities (ORG, PERSON, GPE, PRODUCT, EVENT, WORK_OF_ART)
+    raw_terms = []
     allowed_ents = {"ORG", "PERSON", "GPE", "PRODUCT", "EVENT", "WORK_OF_ART", "LOC"}
     for ent in doc.ents:
         if ent.label_ in allowed_ents:
             raw_terms.append(ent.text)
 
-    # 2. Noun Chunks (e.g. "the rapid brown fox" -> "rapid brown fox")
-    # We filter out determiners and pronouns via clean_term / is_valid_term
     for chunk in doc.noun_chunks:
-        # Avoid huge chunks that are whole sentences
         if len(chunk.text.split()) <= 4:
             raw_terms.append(chunk.text)
 
-    # 3. Clean and filter
     stop_words = nlp.Defaults.stop_words
-    term_counts = Counter()
-
+    counts: Counter = Counter()
     for rt in raw_terms:
-        ct = clean_term(rt)
-        if is_valid_term(ct, stop_words):
-            term_counts[ct] += 1
+        ct = clean_term_en(rt)
+        if len(ct) >= 3 and not ct.isnumeric() and ct not in stop_words:
+            counts[ct] += 1
 
-    # 4. Return Top N
-    most_common = dict(term_counts.most_common(top_n))
-    logger.debug(f"Extracted {len(most_common)} top terms from text")
-    
-    return most_common
+    return dict(counts.most_common(top_n))
+
+
+def _extract_ar(text: str, top_n: int) -> dict[str, int]:
+    """
+    Extract Arabic terms using regex + spaCy Arabic tokenizer.
+    Since no official Arabic NER exists, we extract high-frequency
+    content words (filtering stopwords manually).
+    """
+    if not text.strip():
+        return {}
+
+    nlp = _get_nlp_ar()
+    doc = nlp(text)
+
+    counts: Counter = Counter()
+    for token in doc:
+        word = clean_term_ar(token.text)
+        if (
+            len(word) >= 3
+            and _AR_WORD_PATTERN.match(word)
+            and word not in _AR_STOPWORDS
+        ):
+            counts[word] += 1
+
+    return dict(counts.most_common(top_n))
+
+
+def extract_terms(text: str, top_n: int = 15) -> dict[str, int]:
+    """
+    Bilingual term extraction from Arabic, English, or mixed text.
+
+    Strategy:
+      - Detect dominant script of the text block.
+      - Arabic → extract Arabic terms only.
+      - English → extract English terms only.
+      - Mixed → split by language, extract each separately,
+                 prefix Arabic terms with 'ar:' for traceability,
+                 merge and return top N overall.
+
+    Args:
+        text:  Clean text from a web page.
+        top_n: Max terms to return per language.
+
+    Returns:
+        Dict mapping term → frequency count.
+    """
+    if not text or not text.strip():
+        return {}
+
+    script = detect_script(text)
+    logger.debug(f"Text script detected: '{script}'")
+
+    if script == "ar":
+        return _extract_ar(text, top_n)
+
+    elif script == "en":
+        return _extract_en(text, top_n)
+
+    else:  # mixed
+        segments = split_by_language(text)
+        en_terms = _extract_en(segments["en"], top_n)
+        ar_terms = _extract_ar(segments["ar"], top_n)
+
+        # Prefix Arabic terms so they stay identifiable in the DB
+        merged: Counter = Counter(en_terms)
+        for term, freq in ar_terms.items():
+            merged[f"ar:{term}"] += freq
+
+        logger.debug(
+            f"Mixed extraction: {len(en_terms)} EN terms + "
+            f"{len(ar_terms)} AR terms"
+        )
+        return dict(merged.most_common(top_n * 2))

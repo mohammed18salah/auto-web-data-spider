@@ -1,0 +1,14 @@
+2026-04-25 20:42:40.424 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_shell.log
+2026-04-25 20:42:41.129 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:42:41.140 | DEBUG    | knowledge_spider.storage.database:create_session:79 - Session created: test-shell-session (topic=Python)
+2026-04-25 20:42:41.146 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Python' depth=0
+2026-04-25 20:42:41.148 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Django' depth=1
+2026-04-25 20:42:41.152 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: Python -> Django (w=0.90)
+2026-04-25 20:42:41.154 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:51:52.793 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_shell.log
+2026-04-25 20:51:53.437 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:51:53.448 | DEBUG    | knowledge_spider.storage.database:create_session:79 - Session created: test-shell-session (topic=Python)
+2026-04-25 20:51:53.452 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Python' depth=0
+2026-04-25 20:51:53.454 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Django' depth=1
+2026-04-25 20:51:53.459 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: Python -> Django (w=0.90)
+2026-04-25 20:51:53.461 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db

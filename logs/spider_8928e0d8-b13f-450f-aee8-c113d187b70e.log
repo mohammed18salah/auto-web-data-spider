@@ -1,0 +1,37 @@
+2026-04-25 20:56:17.555 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_8928e0d8-b13f-450f-aee8-c113d187b70e.log
+2026-04-25 20:56:18.298 | DEBUG    | knowledge_spider.storage.database:create_session:79 - Session created: 8928e0d8-b13f-450f-aee8-c113d187b70e (topic=Quantum Computing)
+2026-04-25 20:56:18.299 | INFO     | knowledge_spider.core.session:create_session:64 - New session created | id=8928e0d8... topic='Quantum Computing' depth=3 max_sources=50
+2026-04-25 20:56:18.303 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:56:18.311 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_8928e0d8-b13f-450f-aee8-c113d187b70e.log
+2026-04-25 20:56:18.311 | INFO     | knowledge_spider.core.session:load_session:93 - Session loaded | id=8928e0d8... topic='Quantum Computing' status=running
+2026-04-25 20:56:18.820 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Quantum Computing' depth=0
+2026-04-25 20:56:18.820 | INFO     | knowledge_spider.crawler.orchestrator:_seed_initial_topic:70 - Seeded root topic: 'Quantum Computing'
+2026-04-25 20:56:18.821 | INFO     | knowledge_spider.crawler.orchestrator:run:194 - Starting Orchestrator for session 8928e0d8...
+2026-04-25 20:56:19.398 | DEBUG    | knowledge_spider.storage.database:update_session_status:117 - Session 8928e0d8-b13f-450f-aee8-c113d187b70e status -> running
+2026-04-25 20:56:19.398 | DEBUG    | knowledge_spider.core.session:save_session_state:116 - Session 8928e0d8... state saved -> running
+2026-04-25 20:56:19.402 | INFO     | knowledge_spider.crawler.orchestrator:run:213 - Processing Topic: 'Quantum Computing' (Depth 0)
+2026-04-25 20:56:20.087 | DEBUG    | knowledge_spider.query.query_engine:generate_queries:42 - Generated 8 queries for topic 'Quantum Computing'
+2026-04-25 20:56:20.087 | INFO     | knowledge_spider.query.query_engine:target_sources:83 - Targeting sources for 'Quantum Computing' using 8 queries...
+2026-04-25 20:56:20.094 | DEBUG    | knowledge_spider.query.query_engine:target_sources:87 - Executing search: 'what is Quantum Computing'
+2026-04-25 20:56:21.044 | WARNING  | knowledge_spider.query.query_engine:target_sources:109 - Search failed for query 'what is Quantum Computing': https://links.duckduckgo.com/d.js?q=what+is+Quantum+Computing&kl=wt-wt&l=wt-wt&p=&s=0&df=&vqd=4-199833049080077883985150577235325622756&bing_market=wt-WT&ex=-1 202 Ratelimit
+2026-04-25 20:56:25.045 | DEBUG    | knowledge_spider.query.query_engine:target_sources:87 - Executing search: 'Quantum Computing explained'
+2026-04-25 20:56:25.045 | WARNING  | knowledge_spider.query.query_engine:target_sources:109 - Search failed for query 'Quantum Computing explained': Exception occurred in previous call.
+2026-04-25 20:56:29.046 | DEBUG    | knowledge_spider.query.query_engine:target_sources:87 - Executing search: 'Quantum Computing tutorial'
+2026-04-25 20:56:29.046 | WARNING  | knowledge_spider.query.query_engine:target_sources:109 - Search failed for query 'Quantum Computing tutorial': Exception occurred in previous call.
+2026-04-25 20:56:33.047 | DEBUG    | knowledge_spider.query.query_engine:target_sources:87 - Executing search: 'Quantum Computing protocol'
+2026-04-25 20:56:33.047 | WARNING  | knowledge_spider.query.query_engine:target_sources:109 - Search failed for query 'Quantum Computing protocol': Exception occurred in previous call.
+2026-04-25 20:56:37.048 | DEBUG    | knowledge_spider.query.query_engine:target_sources:87 - Executing search: 'Quantum Computing examples'
+2026-04-25 20:56:37.048 | WARNING  | knowledge_spider.query.query_engine:target_sources:109 - Search failed for query 'Quantum Computing examples': Exception occurred in previous call.
+2026-04-25 20:56:41.049 | DEBUG    | knowledge_spider.query.query_engine:target_sources:87 - Executing search: 'how does Quantum Computing work'
+2026-04-25 20:56:41.049 | WARNING  | knowledge_spider.query.query_engine:target_sources:109 - Search failed for query 'how does Quantum Computing work': Exception occurred in previous call.
+2026-04-25 20:56:45.050 | DEBUG    | knowledge_spider.query.query_engine:target_sources:87 - Executing search: 'Quantum Computing types'
+2026-04-25 20:56:45.050 | WARNING  | knowledge_spider.query.query_engine:target_sources:109 - Search failed for query 'Quantum Computing types': Exception occurred in previous call.
+2026-04-25 20:56:49.051 | DEBUG    | knowledge_spider.query.query_engine:target_sources:87 - Executing search: 'Quantum Computing RFC'
+2026-04-25 20:56:49.051 | WARNING  | knowledge_spider.query.query_engine:target_sources:109 - Search failed for query 'Quantum Computing RFC': Exception occurred in previous call.
+2026-04-25 20:56:53.052 | INFO     | knowledge_spider.query.query_engine:target_sources:113 - Targeting complete: 0 unique URLs found for 'Quantum Computing'
+2026-04-25 20:56:53.053 | WARNING  | knowledge_spider.crawler.orchestrator:run:221 - No URLs found for topic 'Quantum Computing'
+2026-04-25 20:56:53.290 | INFO     | knowledge_spider.crawler.orchestrator:run:210 - Topic queue is exhausted or max depth reached. Stopping.
+2026-04-25 20:56:53.636 | DEBUG    | knowledge_spider.storage.database:update_session_status:117 - Session 8928e0d8-b13f-450f-aee8-c113d187b70e status -> complete
+2026-04-25 20:56:53.637 | DEBUG    | knowledge_spider.core.session:save_session_state:116 - Session 8928e0d8... state saved -> complete
+2026-04-25 20:56:53.637 | INFO     | knowledge_spider.core.session:mark_session_complete:129 - Session 8928e0d8... marked COMPLETE
+2026-04-25 20:56:53.637 | INFO     | knowledge_spider.crawler.orchestrator:run:251 - Orchestrator finished. Collected 0 sources.

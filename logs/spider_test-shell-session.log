@@ -1,0 +1,6 @@
+2026-04-25 20:42:41.162 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test-shell-session.log
+2026-04-25 20:42:41.163 | INFO     | knowledge_spider.core.session:load_session:93 - Session loaded | id=test-she... topic='Python' status=complete
+2026-04-25 20:42:41.167 | DEBUG    | knowledge_spider.knowledge.graph:build_graph:62 - Knowledge Graph built: 2 nodes, 1 edges.
+2026-04-25 20:51:53.468 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test-shell-session.log
+2026-04-25 20:51:53.468 | INFO     | knowledge_spider.core.session:load_session:93 - Session loaded | id=test-she... topic='Python' status=complete
+2026-04-25 20:51:53.472 | DEBUG    | knowledge_spider.knowledge.graph:build_graph:62 - Knowledge Graph built: 2 nodes, 1 edges.

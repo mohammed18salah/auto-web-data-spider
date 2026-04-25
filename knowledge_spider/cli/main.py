@@ -18,17 +18,14 @@ from knowledge_spider.core.session import create_session, load_session, pause_se
 from knowledge_spider.storage.database import create_db_and_tables, list_sessions, get_session_stats
 from knowledge_spider.crawler.orchestrator import CrawlerOrchestrator
 from knowledge_spider.knowledge.graph import KnowledgeGraphManager
-from knowledge_spider.utils.logger import set_log_level
+# logger is configured at module level
 
 app = typer.Typer(help="KnowledgeSpider: Autonomous Web Crawling & Knowledge Graph Engine")
 console = Console()
 
-
 @app.callback()
-def main_callback(debug: bool = False):
+def main_callback():
     """Global options."""
-    if debug:
-        set_log_level("DEBUG")
     # Ensure DB is ready before any command
     create_db_and_tables()
 
@@ -150,6 +147,38 @@ def graph(session_id: str = typer.Argument(..., help="UUID of the session to ana
         table.add_row(str(i), concept["topic"], f"{concept['pagerank']:.4f}")
     
     console.print(table)
+
+
+@app.command()
+def shell(session_id: str = typer.Argument(..., help="UUID of the session to explore interactively")):
+    """Launch an interactive REPL to explore the knowledge graph."""
+    from knowledge_spider.cli.shell import start_shell
+    try:
+        start_shell(session_id)
+    except Exception:
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def export(
+    session_id: str = typer.Argument(..., help="UUID of the session to export"),
+    format: str = typer.Option("json", help="Export format: 'json' or 'csv'"),
+):
+    """Export crawled session data to JSON or CSV."""
+    from knowledge_spider.export.exporter import DataExporter
+    try:
+        exporter = DataExporter(session_id)
+        if format.lower() == "json":
+            exporter.export_json()
+            console.print(f"[bold green]Export complete:[/] JSON saved to {exporter.output_dir}")
+        elif format.lower() == "csv":
+            exporter.export_csv()
+            console.print(f"[bold green]Export complete:[/] CSV saved to {exporter.output_dir}")
+        else:
+            console.print(f"[bold red]Unknown format:[/] {format}. Use 'json' or 'csv'.")
+    except Exception as e:
+        console.print(f"[bold red]Export failed:[/] {e}")
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,49 @@
+2026-04-25 20:50:29.473 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_84185638-5641-485c-a5e3-b67b5754e0d9.log
+2026-04-25 20:50:29.579 | DEBUG    | knowledge_spider.storage.database:create_session:79 - Session created: 84185638-5641-485c-a5e3-b67b5754e0d9 (topic=DNS)
+2026-04-25 20:50:29.579 | INFO     | knowledge_spider.core.session:create_session:64 - New session created | id=84185638... topic='DNS' depth=1 max_sources=2
+2026-04-25 20:50:29.582 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:50:29.592 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_84185638-5641-485c-a5e3-b67b5754e0d9.log
+2026-04-25 20:50:29.592 | INFO     | knowledge_spider.core.session:load_session:93 - Session loaded | id=84185638... topic='DNS' status=running
+2026-04-25 20:50:29.705 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'DNS' depth=0
+2026-04-25 20:50:29.705 | INFO     | knowledge_spider.crawler.orchestrator:_seed_initial_topic:70 - Seeded root topic: 'DNS'
+2026-04-25 20:50:29.705 | INFO     | knowledge_spider.crawler.orchestrator:run:194 - Starting Orchestrator for session 84185638...
+2026-04-25 20:50:29.810 | DEBUG    | knowledge_spider.storage.database:update_session_status:117 - Session 84185638-5641-485c-a5e3-b67b5754e0d9 status -> running
+2026-04-25 20:50:29.810 | DEBUG    | knowledge_spider.core.session:save_session_state:116 - Session 84185638... state saved -> running
+2026-04-25 20:50:29.812 | INFO     | knowledge_spider.crawler.orchestrator:run:213 - Processing Topic: 'DNS' (Depth 0)
+2026-04-25 20:50:29.917 | DEBUG    | knowledge_spider.query.query_engine:generate_queries:42 - Generated 8 queries for topic 'DNS'
+2026-04-25 20:50:30.321 | DEBUG    | knowledge_spider.crawler.robots:_fetch_robot_parser:65 - Fetched and parsed robots.txt for https://en.wikipedia.org
+2026-04-25 20:50:30.622 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:72 - Fetching: https://en.wikipedia.org/wiki/Domain_Name_System
+2026-04-25 20:50:32.323 | DEBUG    | knowledge_spider.crawler.parser:parse_page:79 - Parsed https://en.wikipedia.org/wiki/Domain_Name_System -> 11098 words
+2026-04-25 20:50:32.325 | DEBUG    | knowledge_spider.nlp.extractor:get_nlp:31 - Loading spaCy model 'en_core_web_sm'...
+2026-04-25 20:50:35.542 | DEBUG    | knowledge_spider.nlp.extractor:extract_terms:120 - Extracted 15 top terms from text
+2026-04-25 20:50:39.688 | DEBUG    | knowledge_spider.nlp.summariser:generate_summary:71 - Generated 5-sentence summary from text
+2026-04-25 20:50:39.689 | DEBUG    | knowledge_spider.scoring.scorer:calculate_quality_score:91 - Score for en.wikipedia.org (words=11098, depth=0): 0.716 [C:0.50, R:1.00, A:0.40]
+2026-04-25 20:50:41.199 | DEBUG    | knowledge_spider.storage.database:create_source:250 - Source saved: https://en.wikipedia.org/wiki/Domain_Name_System (score=0.72)
+2026-04-25 20:50:41.316 | DEBUG    | knowledge_spider.storage.database:bulk_insert_terms:352 - Bulk inserted 15 terms for topic_id=1
+2026-04-25 20:50:41.423 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'dns' depth=1
+2026-04-25 20:50:41.529 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: DNS -> dns (w=0.90)
+2026-04-25 20:50:41.635 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'rfc' depth=1
+2026-04-25 20:50:41.741 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: DNS -> rfc (w=0.90)
+2026-04-25 20:50:41.848 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'proposed standard' depth=1
+2026-04-25 20:50:41.964 | DEBUG    | knowledge_spider.storage.database:create_edge:315 - Edge: DNS -> proposed standard (w=0.90)
+2026-04-25 20:50:42.203 | DEBUG    | knowledge_spider.storage.database:update_session_status:117 - Session 84185638-5641-485c-a5e3-b67b5754e0d9 status -> running
+2026-04-25 20:50:42.203 | DEBUG    | knowledge_spider.core.session:save_session_state:116 - Session 84185638... state saved -> running
+2026-04-25 20:50:42.205 | INFO     | knowledge_spider.crawler.orchestrator:run:213 - Processing Topic: 'dns' (Depth 1)
+2026-04-25 20:50:42.316 | DEBUG    | knowledge_spider.query.query_engine:generate_queries:42 - Generated 8 queries for topic 'dns'
+2026-04-25 20:50:42.618 | DEBUG    | knowledge_spider.crawler.fetcher:fetch_page:72 - Fetching: https://en.wikipedia.org/wiki/Internet_protocol_suite
+2026-04-25 20:50:43.909 | DEBUG    | knowledge_spider.crawler.parser:parse_page:79 - Parsed https://en.wikipedia.org/wiki/Internet_protocol_suite -> 7953 words
+2026-04-25 20:50:46.279 | DEBUG    | knowledge_spider.nlp.extractor:extract_terms:120 - Extracted 15 top terms from text
+2026-04-25 20:50:48.689 | DEBUG    | knowledge_spider.nlp.summariser:generate_summary:71 - Generated 5-sentence summary from text
+2026-04-25 20:50:48.691 | DEBUG    | knowledge_spider.scoring.scorer:calculate_quality_score:91 - Score for en.wikipedia.org (words=7953, depth=1): 0.646 [C:0.51, R:0.80, A:0.40]
+2026-04-25 20:50:49.356 | DEBUG    | knowledge_spider.storage.database:create_source:250 - Source saved: https://en.wikipedia.org/wiki/Internet_protocol_suite (score=0.65)
+2026-04-25 20:50:49.530 | DEBUG    | knowledge_spider.storage.database:bulk_insert_terms:352 - Bulk inserted 15 terms for topic_id=2
+2026-04-25 20:50:49.763 | DEBUG    | knowledge_spider.storage.database:update_session_status:117 - Session 84185638-5641-485c-a5e3-b67b5754e0d9 status -> running
+2026-04-25 20:50:49.763 | DEBUG    | knowledge_spider.core.session:save_session_state:116 - Session 84185638... state saved -> running
+2026-04-25 20:50:49.764 | INFO     | knowledge_spider.crawler.orchestrator:run:201 - Reached max sources limit (2). Stopping.
+2026-04-25 20:50:49.764 | INFO     | knowledge_spider.crawler.orchestrator:run:251 - Orchestrator finished. Collected 2 sources.
+2026-04-25 20:50:49.771 | DEBUG    | knowledge_spider.knowledge.graph:build_graph:62 - Knowledge Graph built: 4 nodes, 3 edges.
+2026-04-25 20:50:49.776 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
+2026-04-25 20:50:49.786 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_84185638-5641-485c-a5e3-b67b5754e0d9.log
+2026-04-25 20:50:49.786 | INFO     | knowledge_spider.core.session:load_session:93 - Session loaded | id=84185638... topic='DNS' status=running
+2026-04-25 20:50:49.800 | INFO     | knowledge_spider.export.exporter:export_json:97 - Exported JSON to D:\mohammed dev\data spider\integration_output\spider_84185638.json
+2026-04-25 20:50:49.807 | INFO     | knowledge_spider.export.exporter:export_csv:130 - Exported 2 sources to CSV at D:\mohammed dev\data spider\integration_output\spider_sources_84185638.csv

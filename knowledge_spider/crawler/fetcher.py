@@ -28,14 +28,8 @@ USER_AGENTS = [
 
 def fetch_page(url: str, config: Optional[Config] = None) -> Optional[Dict[str, Any]]:
     """
-    Fetch a webpage synchronously via httpx with safety constraints.
-
-    Process:
-    1. Check robots.txt (if enabled in config).
-    2. Sleep for crawl_delay_seconds to avoid rate limits.
-    3. Rotate User-Agent.
-    4. Fetch page with a 15-second timeout and following redirects.
-    5. Return a structured dictionary with HTML and metadata.
+    Fetch a webpage synchronously via a real browser (Playwright) with safety constraints.
+    This opens a visible browser so the user can watch the crawling process.
 
     Args:
         url: The full URL to fetch.
@@ -43,13 +37,21 @@ def fetch_page(url: str, config: Optional[Config] = None) -> Optional[Dict[str, 
 
     Returns:
         A dict containing:
-          - url: Final redirected URL
-          - status_code: HTTP status
+          - url: Final URL
+          - status_code: HTTP status (default 200 for browser if successful)
           - html: The text content
-          - headers: Response headers dict
+          - headers: Empty dict (not strictly tracked in simple playwright mode)
           - fetched_at: ISO timestamp
-        Returns None if fetch fails (404, blocked, timeout, etc.)
+        Returns None if fetch fails.
     """
+    from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+    import sys
+    import asyncio
+    
+    # Fix for Windows asyncio loop policy
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
     cfg = config or get_config()
 
     # 1. robots.txt check
@@ -61,43 +63,51 @@ def fetch_page(url: str, config: Optional[Config] = None) -> Optional[Dict[str, 
     if cfg.crawler.crawl_delay_seconds > 0:
         time.sleep(cfg.crawler.crawl_delay_seconds)
 
-    # 3. User-Agent rotation
-    headers = {
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-    }
-
-    # 4. Fetch
-    logger.debug(f"Fetching: {url}")
+    logger.debug(f"Browsing to: {url}")
+    
     try:
-        with httpx.Client(follow_redirects=True, timeout=15.0) as client:
-            response = client.get(url, headers=headers)
+        with sync_playwright() as p:
+            # headless=False so the user can see it!
+            browser = p.chromium.launch(headless=False)
+            context = browser.new_context(
+                viewport={"width": 1280, "height": 720},
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
+            page = context.new_page()
             
-            # Raise for 4xx/5xx errors
-            response.raise_for_status()
+            # Go to the URL
+            response = page.goto(url, wait_until="domcontentloaded", timeout=15000)
+            
+            if not response:
+                logger.warning(f"No response from {url}")
+                browser.close()
+                return None
+                
+            # Sleep a moment to let the user see the page and let JS load
+            time.sleep(2)
+            
+            html_content = page.content()
+            final_url = page.url
+            status = response.status
 
-            # Ensure we got HTML text (ignore PDFs, images, etc.)
-            content_type = response.headers.get("Content-Type", "").lower()
-            if "text/html" not in content_type and "text/plain" not in content_type:
-                logger.warning(f"Fetch skipped: non-text content-type '{content_type}' at {url}")
+            browser.close()
+
+            # Ensure we don't process binary data (though playwright handles text pages best)
+            if status >= 400:
+                logger.warning(f"HTTP error {status} fetching {url}")
                 return None
 
             return {
-                "url": str(response.url),
-                "status_code": response.status_code,
-                "html": response.text,
-                "headers": dict(response.headers),
+                "url": final_url,
+                "status_code": status,
+                "html": html_content,
+                "headers": {},
                 "fetched_at": datetime.utcnow().isoformat(),
             }
 
-    except httpx.HTTPStatusError as e:
-        logger.warning(f"HTTP error {e.response.status_code} fetching {url}: {e}")
-    except httpx.TimeoutException:
-        logger.warning(f"Timeout fetching {url}")
-    except httpx.RequestError as e:
-        logger.warning(f"Request error fetching {url}: {e}")
+    except PlaywrightTimeoutError:
+        logger.warning(f"Timeout browsing to {url}")
     except Exception as e:
-        logger.error(f"Unexpected error fetching {url}: {e}")
+        logger.error(f"Unexpected error browsing {url}: {e}")
 
     return None

@@ -315,35 +315,52 @@ function App() {
     <div className="app-container">
       {/* HEADER */}
       <header className="glass-panel header">
-        <div className="header-right">
-          <div className="timer-box">
-            <Clock size={18} />
-            <span>{elapsedTime}</span>
-            <span style={{ fontSize: '0.8rem', opacity: 0.8, margin: '0 4px' }}>{loc.timeSince}</span>
+        {/* Brand / Logo Section */}
+        <div className="header-brand" onClick={() => setPage('home')}>
+          <div className="brand-icon-wrapper">
+            <Globe size={20} className="brand-icon" />
+          </div>
+          <div className="brand-text-group">
+            <span className="brand-title">{loc.title}</span>
+            <span className="brand-badge">v1.0</span>
           </div>
         </div>
 
-        <div className="header-title" style={{ cursor: 'pointer' }} onClick={() => setPage('home')}>
-          {loc.title}
-        </div>
-
-        <div className="header-left">
-          <button className={`btn-text ${page === 'home' ? 'active-page' : ''}`} onClick={() => setPage('home')}>
-            <Home size={18} /> {loc.home}
+        {/* Central Navigation Pills */}
+        <nav className="header-nav">
+          <button 
+            className={`nav-pill ${page === 'home' ? 'active' : ''}`} 
+            onClick={() => setPage('home')}
+          >
+            <Home size={17} /> 
+            <span>{loc.home}</span>
           </button>
-          <button className={`btn-text ${page === 'history' ? 'active-page' : ''}`} onClick={() => setPage('history')}>
-            <Database size={18} /> {loc.history}
+          <button 
+            className={`nav-pill ${page === 'history' ? 'active' : ''}`} 
+            onClick={() => setPage('history')}
+          >
+            <Database size={17} /> 
+            <span>{loc.history}</span>
           </button>
+        </nav>
 
+        {/* Controls & Status Section */}
+        <div className="header-actions">
+          <div className={`timer-badge ${isRunning ? 'running' : ''}`}>
+            <Clock size={16} />
+            <span className="timer-value">{elapsedTime}</span>
+            <span className="timer-label">{loc.timeSince}</span>
+            {isRunning && <span className="status-pulse-dot"></span>}
+          </div>
 
-          <div style={{ width: '1px', height: '24px', background: 'var(--panel-border)', margin: '0 8px' }}></div>
+          <div className="nav-divider"></div>
 
           <button className="btn-icon" onClick={toggleLang} title="تغيير اللغة / Change Language">
-            <Languages size={20} />
+            <Languages size={18} />
           </button>
 
-          <button className="btn-icon" onClick={toggleTheme} title="تغيير المظهر">
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          <button className="btn-icon" onClick={toggleTheme} title="تغيير المظهر / Toggle Theme">
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
         </div>
       </header>
@@ -483,43 +500,45 @@ function App() {
         )}
 
         {page === 'history' && (
-          <div className="glass-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-              <Database size={28} color="var(--accent-color)" />
-              <h2>{loc.historyTitle}</h2>
+          <div className="glass-panel history-panel">
+            <div className="history-header">
+              <div className="history-icon-badge">
+                <Database size={22} />
+              </div>
+              <div>
+                <h2>{loc.historyTitle}</h2>
+                <p className="history-subtitle">{lang === 'ar' ? 'سجل العمليات وبيانات الزحف المحفوظة محلياً' : 'Locally stored crawl history and sessions'}</p>
+              </div>
             </div>
             
-            <div className="history-table-container" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '12px', overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: lang === 'ar' ? 'right' : 'left' }}>
+            <div className="history-table-container">
+              <table className="history-table" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(0,0,0,0.1)', color: 'var(--text-secondary)' }}>
-                    <th style={{ padding: '16px' }}>{loc.sessionID}</th>
-                    <th style={{ padding: '16px' }}>{loc.topic}</th>
-                    <th style={{ padding: '16px' }}>{loc.sourcesAnalyzed}</th>
-                    <th style={{ padding: '16px' }}>{loc.statusCol}</th>
-                    <th style={{ padding: '16px', textAlign: 'center' }}>{loc.actions}</th>
+                  <tr>
+                    <th>{loc.sessionID}</th>
+                    <th>{loc.topic}</th>
+                    <th>{loc.sourcesAnalyzed}</th>
+                    <th>{loc.statusCol}</th>
+                    <th style={{ textAlign: 'center' }}>{loc.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {historyList.length > 0 ? historyList.map(session => (
-                    <tr key={session.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                      <td style={{ padding: '16px' }}>{session.id.slice(0, 8)}...</td>
-                      <td style={{ padding: '16px' }}>{session.topic}</td>
-                      <td style={{ padding: '16px' }}>{session.sources_analyzed || 0}</td>
-                      <td style={{ padding: '16px' }}>
-                        <span style={{ 
-                          padding: '4px 8px', 
-                          borderRadius: '12px', 
-                          fontSize: '0.8rem',
-                          background: session.status === 'complete' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(234, 179, 8, 0.2)',
-                          color: session.status === 'complete' ? '#22c55e' : '#eab308'
-                        }}>
+                    <tr key={session.id}>
+                      <td className="font-mono text-muted">{session.id.slice(0, 8)}...</td>
+                      <td className="font-semibold">{session.topic}</td>
+                      <td>
+                        <span className="source-count-pill">{session.sources_analyzed || 0}</span>
+                      </td>
+                      <td>
+                        <span className={`status-badge ${session.status}`}>
+                          <span className="status-dot"></span>
                           {session.status}
                         </span>
                       </td>
-                      <td style={{ padding: '16px', textAlign: 'center' }}>
+                      <td style={{ textAlign: 'center' }}>
                          <button 
-                           className="btn-icon" 
+                           className="btn-icon btn-danger-hover" 
                            title={lang === 'ar' ? 'حذف الجلسة' : 'Delete Session'}
                            onClick={() => handleDeleteSession(session.id)}
                          >
@@ -529,8 +548,9 @@ function App() {
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                        {loc.noData}
+                      <td colSpan={5} className="no-data-cell">
+                        <Database size={40} className="no-data-icon" />
+                        <p>{loc.noData}</p>
                       </td>
                     </tr>
                   )}

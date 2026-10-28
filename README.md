@@ -558,5 +558,5 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 ---
 
 <div align="center">
-  <sub>Built by the Auto Web Data Spider Team. If you find this project useful, please consider starring the repository on GitHub!</sub>
+  <sub>Built by <b><a href="https://github.com/mohammed18salah">Mohammed Salah</a></b>. If you find this project useful, please consider starring the repository on GitHub!</sub>
 </div>

@@ -9,7 +9,7 @@ description = "Autonomous web data gathering, NLP entity extraction and knowledg
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "AutoWebDataSpider Team" }]
+authors = [{ name = "Mohammed Salah" }]
 keywords = ["web-crawler", "data-spider", "data-harvester", "knowledge-graph", "nlp", "autonomous"]
 classifiers = [
     "Programming Language :: Python :: 3",

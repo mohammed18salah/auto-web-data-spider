@@ -1,6 +1,6 @@
 # Security Policy
 
-The Auto Web Data Spider team takes the security of our software and users seriously.
+Security is taken seriously for Auto Web Data Spider and its users.
 
 ---
 

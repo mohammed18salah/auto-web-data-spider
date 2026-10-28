@@ -4,7 +4,8 @@
 
 ### Autonomous Web Data Gathering, Deep-Crawling & Knowledge Discovery Engine
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![CI](https://github.com/mohammed18salah/auto-web-data-spider/actions/workflows/ci.yml/badge.svg)](https://github.com/mohammed18salah/auto-web-data-spider/actions/workflows/ci.yml)
 [![Python Version](https://img.shields.io/badge/Python-3.11%20|%203.12%20|%203.13-3776AB.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
@@ -546,7 +547,7 @@ Contributions are warmly welcomed! Auto Web Data Spider thrives on community ide
 4. **Push** to your branch: `git push origin feat/amazing-feature`.
 5. **Open** a Pull Request.
 
-Please make sure to run tests and follow clean code conventions before opening PRs.
+Please review our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) for full development setup and testing instructions. For security questions or vulnerability reports, please review our [Security Policy](SECURITY.md).
 
 ---
 

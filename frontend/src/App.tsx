@@ -315,15 +315,9 @@ function App() {
     <div className="app-container">
       {/* HEADER */}
       <header className="glass-panel header">
-        {/* Brand / Logo Section */}
+        {/* Brand Section */}
         <div className="header-brand" onClick={() => setPage('home')}>
-          <div className="brand-icon-wrapper">
-            <Globe size={20} className="brand-icon" />
-          </div>
-          <div className="brand-text-group">
-            <span className="brand-title">{loc.title}</span>
-            <span className="brand-badge">v1.0</span>
-          </div>
+          <span className="brand-title">{loc.title}</span>
         </div>
 
         {/* Central Navigation Pills */}

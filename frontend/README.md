@@ -1,73 +1,47 @@
-# React + TypeScript + Vite
+# Auto Web Data Spider Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + TypeScript + Electron desktop user interface for the Auto Web Data Spider autonomous crawling and knowledge discovery system.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **React 19 Architecture** — Built with modern React 19, TypeScript, and Vite for instant HMR and high-performance rendering.
+- **Glassmorphic Design System** — Tailored obsidian dark mode (`#030305`) and clean light mode with smooth transitions.
+- **Interactive Knowledge Graph Viewer** — Hardware-accelerated 60 FPS HTML5 Canvas engine rendering interconnected entities in cosmic deep-space view:
+  - Concentric planetary orbits for balanced topology.
+  - Coulomb repulsion and Hooke's spring physics.
+  - Multi-category entity tagging (People, Organizations, Concepts, Publications).
+  - Search filter, category pills, smooth zoom/pan camera controls, and detailed side-inspector card.
+  - One-click recursive entity crawling (`onExpandTopic`).
+- **Full Bilingual Support** — Real-time switching between Arabic (RTL) and English (LTR).
+- **Session Explorer & Analytics** — View analyzed sources, quality ratings, word counts, extracted summaries, and full JSON payloads.
+- **Strict Accessibility & Clean Aesthetics** — Zero emojis across the entire UI for a professional, high-signal experience.
+- **Electron Desktop Bridge** — Context-isolated preload script with secure IPC communication.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Development Mode
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Install dependencies
+npm install
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Run Vite dev server in web browser mode
+npm run dev
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Run inside Electron desktop window
+npm run electron:dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Production Build
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Build production bundle with TypeScript checks
+npm run build
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Package Electron executable
+npm run electron:build
 ```

@@ -94,7 +94,16 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
-  const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
+
+  // High-performance refs for 60fps canvas loop without React state thrashing
+  const hoveredNodeIdRef = useRef<string | null>(null);
+  const selectedNodeRef = useRef<GraphNode | null>(null);
+  const selectedCategoryRef = useRef<string>('all');
+  const searchQueryRef = useRef<string>('');
+
+  useEffect(() => { selectedNodeRef.current = selectedNode; }, [selectedNode]);
+  useEffect(() => { selectedCategoryRef.current = selectedCategory; }, [selectedCategory]);
+  useEffect(() => { searchQueryRef.current = searchQuery; }, [searchQuery]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -109,6 +118,21 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
   const simNodes = useRef<GraphNode[]>([]);
   const simEdges = useRef<GraphEdge[]>([]);
   const animFrameId = useRef<number | null>(null);
+
+  // Background deep space cosmic stars
+  const starsRef = useRef<{ x: number; y: number; r: number; a: number }[]>([]);
+  useEffect(() => {
+    const list = [];
+    for (let i = 0; i < 150; i++) {
+      list.push({
+        x: (Math.random() - 0.5) * 3000,
+        y: (Math.random() - 0.5) * 2200,
+        r: Math.random() * 1.3 + 0.35,
+        a: Math.random() * 0.45 + 0.15,
+      });
+    }
+    starsRef.current = list;
+  }, []);
 
   // Fetch all sessions for dropdown selector
   useEffect(() => {
@@ -150,19 +174,45 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
 
     cameraRef.current = { x: width / 2, y: height / 2, zoom: 1.0 };
 
-    const nodesCopy = data.nodes.map(n => {
-      // Calculate initial position if provided or radial layout
-      const cx = (n.x !== undefined ? (n.x - 0.5) * (width * 0.75) : (Math.random() - 0.5) * 300);
-      const cy = (n.y !== undefined ? (n.y - 0.5) * (height * 0.75) : (Math.random() - 0.5) * 300);
-      return {
-        ...n,
-        x: cx,
-        y: cy,
+    const rootNode = data.nodes.find(n => n.is_root);
+    const nonRootNodes = data.nodes.filter(n => !n.is_root);
+    const total = nonRootNodes.length;
+
+    const nodesCopy: GraphNode[] = [];
+
+    if (rootNode) {
+      nodesCopy.push({
+        ...rootNode,
+        x: 0,
+        y: 0,
         vx: 0,
         vy: 0,
-        fx: n.is_root ? 0 : null,
-        fy: n.is_root ? 0 : null,
-      };
+        fx: 0,
+        fy: 0,
+      });
+    }
+
+    nonRootNodes.forEach((n, idx) => {
+      let orbitRadius = 220;
+      if (n.type === 'organization') orbitRadius = 180;
+      else if (n.type === 'person') orbitRadius = 260;
+      else if (n.type === 'concept') orbitRadius = 340;
+      else if (n.type === 'publication') orbitRadius = 420;
+
+      const angle = (idx / Math.max(1, total)) * 2 * Math.PI + (idx % 2 === 0 ? 0.15 : -0.15);
+      const r = orbitRadius + (idx % 3) * 30;
+      const x = Math.cos(angle) * r;
+      const y = Math.sin(angle) * r;
+
+      nodesCopy.push({
+        ...n,
+        x,
+        y,
+        vx: 0,
+        vy: 0,
+        fx: null,
+        fy: null,
+      });
     });
 
     simNodes.current = nodesCopy;
@@ -198,12 +248,12 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
         const dy = b.y! - a.y!;
         const distSq = dx * dx + dy * dy + 1;
         const dist = Math.sqrt(distSq);
-        if (dist < 320) {
-          const force = (8000 / distSq);
+        if (dist < 420) {
+          const force = (16000 / distSq);
           const fx = (dx / dist) * force;
           const fy = (dy / dist) * force;
-          if (a.fx === null) { a.vx! -= fx; a.vy! -= fy; }
-          if (b.fx === null) { b.vx! += fx; b.vy! += fy; }
+          if (a.fx === null || a.fx === undefined) { a.vx! -= fx; a.vy! -= fy; }
+          if (b.fx === null || b.fx === undefined) { b.vx! += fx; b.vy! += fy; }
         }
       }
     }
@@ -220,31 +270,31 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
       const dx = b.x! - a.x!;
       const dy = b.y! - a.y!;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      const targetDist = 120 * (1 / (e.weight || 1));
+      const targetDist = 200 * (1 / Math.sqrt(e.weight || 1));
       const delta = dist - targetDist;
-      const force = delta * 0.025;
+      const force = delta * 0.015;
 
       const fx = (dx / dist) * force;
       const fy = (dy / dist) * force;
 
-      if (a.fx === null) { a.vx! += fx; a.vy! += fy; }
-      if (b.fx === null) { b.vx! -= fx; b.vy! -= fy; }
+      if (a.fx === null || a.fx === undefined) { a.vx! -= fx; a.vy! -= fy; }
+      if (b.fx === null || b.fx === undefined) { b.vx! += fx; b.vy! += fy; }
     });
 
     // Center Gravity & Damping
     nodes.forEach(n => {
-      if (n.fx === null) {
-        n.vx! -= n.x! * 0.003;
-        n.vy! -= n.y! * 0.003;
+      if (n.fx === null || n.fx === undefined) {
+        n.vx! -= n.x! * 0.0005;
+        n.vy! -= n.y! * 0.0005;
 
-        n.vx! *= 0.86;
-        n.vy! *= 0.86;
+        n.vx! *= 0.88;
+        n.vy! *= 0.88;
 
         n.x! += n.vx!;
         n.y! += n.vy!;
       } else {
-        if (n.fx !== null && n.fx !== undefined) n.x = n.fx;
-        if (n.fy !== null && n.fy !== undefined) n.y = n.fy;
+        if (typeof n.fx === 'number') n.x = n.fx;
+        if (typeof n.fy === 'number') n.y = n.fy;
       }
     });
   };
@@ -273,12 +323,25 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
 
       ctx.save();
       ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, width, height);
+      
+      // Pure deep space black background
+      ctx.fillStyle = '#020408';
+      ctx.fillRect(0, 0, width, height);
 
       // Apply camera pan & zoom
       const cam = cameraRef.current;
       ctx.translate(cam.x, cam.y);
       ctx.scale(cam.zoom, cam.zoom);
+
+      // Draw subtle background celestial stars
+      if (starsRef.current.length > 0) {
+        starsRef.current.forEach(star => {
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(224, 242, 254, ${star.a})`;
+          ctx.fill();
+        });
+      }
 
       // Run 1 physics tick per frame
       tickPhysics();
@@ -288,14 +351,16 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
       const nodeById = new Map<string, GraphNode>();
       nodes.forEach(n => nodeById.set(n.id, n));
 
-      // Filter state
+      // Filter state using current refs
+      const currentCat = selectedCategoryRef.current;
+      const currentQuery = searchQueryRef.current;
       const isFiltered = (n: GraphNode) => {
-        if (selectedCategory !== 'all' && n.type !== selectedCategory && !n.is_root) return false;
-        if (searchQuery.trim() && !n.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        if (currentCat !== 'all' && n.type !== currentCat && !n.is_root) return false;
+        if (currentQuery.trim() && !n.name.toLowerCase().includes(currentQuery.toLowerCase())) return false;
         return true;
       };
 
-      const activeTargetId = selectedNode?.id || hoveredNode?.id;
+      const activeTargetId = selectedNodeRef.current?.id || hoveredNodeIdRef.current;
 
       // Draw Edges
       edges.forEach(e => {
@@ -318,10 +383,10 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
           ctx.strokeStyle = '#38bdf8';
           ctx.lineWidth = 2.5;
         } else if (isDimmed) {
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
           ctx.lineWidth = 1;
         } else {
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
           ctx.lineWidth = 1.2;
         }
         ctx.stroke();
@@ -343,14 +408,14 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
       // Draw Nodes
       nodes.forEach(n => {
         if (!isFiltered(n)) return;
-        const isSelected = selectedNode?.id === n.id;
-        const isHovered = hoveredNode?.id === n.id;
+        const isSelected = selectedNodeRef.current?.id === n.id;
+        const isHovered = hoveredNodeIdRef.current === n.id;
         const isConnected = activeTargetId && (n.id === activeTargetId || connectedMap.get(activeTargetId)?.has(n.id));
         const isDimmed = activeTargetId && !isConnected;
 
         const conf = TYPE_COLORS[n.is_root ? 'root' : n.type] || TYPE_COLORS.concept;
-        const baseRadius = n.is_root ? 24 : Math.max(12, Math.min(22, (n.val || 16) * 0.9));
-        const radius = isSelected || isHovered ? baseRadius * 1.2 : baseRadius;
+        const baseRadius = n.is_root ? 16 : (n.degree && n.degree > 3 ? 12 : 9.5);
+        const radius = isSelected || isHovered ? baseRadius * 1.25 : baseRadius;
 
         ctx.save();
         ctx.translate(n.x!, n.y!);
@@ -358,7 +423,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
         // Outer Glow for Root or Highlighted Node
         if (n.is_root || isSelected || isHovered) {
           ctx.beginPath();
-          ctx.arc(0, 0, radius + 8, 0, Math.PI * 2);
+          ctx.arc(0, 0, radius + 7, 0, Math.PI * 2);
           ctx.fillStyle = conf.glow;
           ctx.fill();
         }
@@ -366,10 +431,10 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
         // Concentric radar ring for root
         if (n.is_root) {
           ctx.beginPath();
-          ctx.arc(0, 0, radius + 14, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
-          ctx.lineWidth = 1.5;
-          ctx.setLineDash([4, 4]);
+          ctx.arc(0, 0, radius + 11, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+          ctx.lineWidth = 1.2;
+          ctx.setLineDash([3, 3]);
           ctx.stroke();
           ctx.setLineDash([]);
         }
@@ -377,31 +442,31 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
         // Node Circle
         ctx.beginPath();
         ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.fillStyle = isDimmed ? 'rgba(50, 50, 60, 0.4)' : conf.bg;
+        ctx.fillStyle = isDimmed ? 'rgba(40, 44, 56, 0.35)' : conf.bg;
         ctx.fill();
 
-        ctx.lineWidth = isSelected ? 3 : 1.8;
-        ctx.strokeStyle = isDimmed ? 'rgba(255, 255, 255, 0.1)' : conf.border;
+        ctx.lineWidth = isSelected ? 2.5 : 1.5;
+        ctx.strokeStyle = isDimmed ? 'rgba(255, 255, 255, 0.08)' : conf.border;
         ctx.stroke();
 
         // Node Label
-        ctx.font = `${n.is_root ? 'bold 12px' : '600 11px'} Cairo, Inter, sans-serif`;
+        ctx.font = (n.is_root ? "bold 11px" : "500 10px") + " Cairo, Inter, sans-serif";
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
 
-        const labelText = n.name.length > 24 ? n.name.slice(0, 24) + '...' : n.name;
+        const labelText = n.name.length > 22 ? n.name.slice(0, 22) + '...' : n.name;
 
         // Label Background Pill
         const textWidth = ctx.measureText(labelText).width;
-        ctx.fillStyle = isDimmed ? 'rgba(10, 10, 14, 0.3)' : 'rgba(15, 17, 26, 0.85)';
+        ctx.fillStyle = isDimmed ? 'rgba(10, 10, 14, 0.25)' : 'rgba(8, 12, 22, 0.85)';
         ctx.beginPath();
-        ctx.roundRect(-textWidth / 2 - 6, radius + 5, textWidth + 12, 18, 5);
+        ctx.roundRect(-textWidth / 2 - 5, radius + 4, textWidth + 10, 16, 4);
         ctx.fill();
-        ctx.strokeStyle = isDimmed ? 'transparent' : 'rgba(255, 255, 255, 0.1)';
+        ctx.strokeStyle = isDimmed ? 'transparent' : 'rgba(255, 255, 255, 0.12)';
         ctx.stroke();
 
         ctx.fillStyle = isDimmed ? '#64748b' : '#f8fafc';
-        ctx.fillText(labelText, 0, radius + 8);
+        ctx.fillText(labelText, 0, radius + 6);
 
         ctx.restore();
       });
@@ -415,9 +480,9 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
       isRunning = false;
       if (animFrameId.current) cancelAnimationFrame(animFrameId.current);
     };
-  }, [graphData, selectedCategory, searchQuery, selectedNode, hoveredNode, connectedMap]);
+  }, [graphData, connectedMap]);
 
-  // Screen coordinate to graph world coordinate
+    // Screen coordinate to graph world coordinate
   const screenToWorld = (screenX: number, screenY: number) => {
     const cam = cameraRef.current;
     return {
@@ -429,17 +494,27 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
   // Find node under cursor
   const getNodeAtPosition = (screenX: number, screenY: number): GraphNode | null => {
     const { x, y } = screenToWorld(screenX, screenY);
+    const currentCat = selectedCategoryRef.current;
+    const currentQuery = searchQueryRef.current;
+
     for (let i = simNodes.current.length - 1; i >= 0; i--) {
       const n = simNodes.current[i];
-      const radius = n.is_root ? 28 : Math.max(14, (n.val || 16) * 1.1);
+      if (currentCat !== 'all' && n.type !== currentCat && !n.is_root) continue;
+      if (currentQuery.trim() && !n.name.toLowerCase().includes(currentQuery.toLowerCase())) continue;
+
+      const baseRadius = n.is_root ? 16 : (n.degree && n.degree > 3 ? 12 : 9.5);
+      const hitRadius = baseRadius + 10;
       const dx = n.x! - x;
       const dy = n.y! - y;
-      if (dx * dx + dy * dy <= radius * radius) {
+      if (dx * dx + dy * dy <= hitRadius * hitRadius) {
         return n;
       }
     }
     return null;
   };
+
+  const mouseDownPos = useRef({ x: 0, y: 0 });
+  const hasDragged = useRef(false);
 
   // Mouse handlers for drag, pan, zoom
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -448,12 +523,12 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
     const sx = e.clientX - rect.left;
     const sy = e.clientY - rect.top;
 
+    mouseDownPos.current = { x: e.clientX, y: e.clientY };
+    hasDragged.current = false;
+
     const hit = getNodeAtPosition(sx, sy);
     if (hit) {
       draggedNode.current = hit;
-      hit.fx = hit.x;
-      hit.fy = hit.y;
-      setSelectedNode(hit);
     } else {
       isDraggingCamera.current = true;
       dragStart.current = { x: e.clientX, y: e.clientY };
@@ -466,12 +541,21 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
     const sx = e.clientX - rect.left;
     const sy = e.clientY - rect.top;
 
+    const dist = Math.hypot(e.clientX - mouseDownPos.current.x, e.clientY - mouseDownPos.current.y);
+    if (dist > 5) {
+      hasDragged.current = true;
+    }
+
     if (draggedNode.current) {
-      const { x, y } = screenToWorld(sx, sy);
-      draggedNode.current.fx = x;
-      draggedNode.current.fy = y;
-      draggedNode.current.x = x;
-      draggedNode.current.y = y;
+      if (hasDragged.current) {
+        const { x, y } = screenToWorld(sx, sy);
+        draggedNode.current.fx = x;
+        draggedNode.current.fy = y;
+        draggedNode.current.x = x;
+        draggedNode.current.y = y;
+        draggedNode.current.vx = 0;
+        draggedNode.current.vy = 0;
+      }
     } else if (isDraggingCamera.current) {
       const dx = e.clientX - dragStart.current.x;
       const dy = e.clientY - dragStart.current.y;
@@ -480,19 +564,35 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
       dragStart.current = { x: e.clientX, y: e.clientY };
     } else {
       const hit = getNodeAtPosition(sx, sy);
-      setHoveredNode(hit);
+      hoveredNodeIdRef.current = hit ? hit.id : null;
+      if (canvasRef.current) {
+        canvasRef.current.style.cursor = hit ? 'pointer' : 'grab';
+      }
     }
   };
 
   const handleMouseUp = () => {
     if (draggedNode.current) {
-      if (!draggedNode.current.is_root) {
-        draggedNode.current.fx = null;
-        draggedNode.current.fy = null;
+      if (!hasDragged.current) {
+        // Pure click on node: toggle or set selection
+        const hit = draggedNode.current;
+        setSelectedNode(prev => (prev?.id === hit.id ? null : hit));
+      } else {
+        // Drag release: only pin root
+        if (!draggedNode.current.is_root) {
+          draggedNode.current.fx = null;
+          draggedNode.current.fy = null;
+        }
       }
       draggedNode.current = null;
+    } else if (isDraggingCamera.current) {
+      if (!hasDragged.current) {
+        // Click on empty space: close inspector
+        setSelectedNode(null);
+      }
+      isDraggingCamera.current = false;
     }
-    isDraggingCamera.current = false;
+    hasDragged.current = false;
   };
 
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -529,24 +629,39 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
 
   return (
     <div className="glass-panel knowledge-graph-panel" ref={containerRef}>
-      {/* Top Header Bar */}
+      {/* Top Header Bar - Compact & Clean without logo */}
       <div className="graph-header-bar">
         <div className="graph-title-group">
-          <div className="graph-icon-badge">
-            <Share2 size={20} />
-          </div>
           <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>
-              {lang === 'ar' ? 'مخطط المعرفة وشبكة العلاقات (Knowledge Graph)' : 'Knowledge Graph & Entity Relations'}
-            </h2>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-              {lang === 'ar' ? 'استكشاف بصري تفاعلي للأشخاص والزملاء، الجامعات، والمفاهيم المترابطة' : 'Interactive visual map of connected people, universities, and research domains'}
-            </p>
+            <div className="graph-main-title-row">
+              <h2 className="graph-main-title">
+                {lang === 'ar' ? 'مخطط المعرفة وشبكة العلاقات' : 'Knowledge Graph & Relations'}
+              </h2>
+              {graphData?.seed_topic && (
+                <span className="graph-seed-badge">{graphData.seed_topic}</span>
+              )}
+            </div>
+            {graphData?.stats && (
+              <span className="graph-stats-summary">
+                {graphData.stats.total_nodes} {lang === 'ar' ? 'عقدة مستخلصة' : 'nodes'} • {graphData.stats.total_edges} {lang === 'ar' ? 'علاقة مترابطة' : 'relationships'}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Session Selector Dropdown */}
+        {/* Session Selector & Search in sleek compact bar */}
         <div className="graph-controls-group">
+          <div className="graph-search-wrapper">
+            <Search size={13} className="graph-search-icon" />
+            <input
+              type="text"
+              className="graph-search-input"
+              placeholder={lang === 'ar' ? 'بحث عن كيان أو مفهوم...' : 'Search in graph...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
           <select
             className="graph-session-select"
             value={selectedSessionId}
@@ -558,18 +673,6 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               </option>
             ))}
           </select>
-
-          {/* Search inside Graph */}
-          <div className="graph-search-wrapper">
-            <Search size={14} className="graph-search-icon" />
-            <input
-              type="text"
-              className="graph-search-input"
-              placeholder={lang === 'ar' ? 'بحث عن شخص أو مفهوم...' : 'Search person or concept...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
         </div>
       </div>
 
@@ -672,7 +775,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
 
         {/* Selected Node Details Card (Side Panel) */}
         {selectedNode && (
-          <div className="node-inspector-card">
+          <div className="node-inspector-card" onClick={(e) => e.stopPropagation()}>
             <div className="inspector-header">
               <div className="inspector-badge" style={{ color: getNodeTypeBadge(selectedNode.type, selectedNode.is_root).color }}>
                 {React.createElement(getNodeTypeBadge(selectedNode.type, selectedNode.is_root).icon, { size: 14 })}
@@ -682,12 +785,15 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                 type="button"
                 className="inspector-close-btn"
                 onClick={() => setSelectedNode(null)}
+                title={lang === 'ar' ? 'إغلاق' : 'Close'}
               >
                 <X size={15} />
               </button>
             </div>
 
-            <h3 className="inspector-title">{selectedNode.name}</h3>
+            <h3 className="inspector-title" style={{ color: getNodeTypeBadge(selectedNode.type, selectedNode.is_root).color }}>
+              {selectedNode.name}
+            </h3>
 
             <p className="inspector-desc">
               {selectedNode.details || (lang === 'ar' ? 'كيان مستخلص ضمن شبكة المعرفة.' : 'Entity mapped in knowledge network.')}
@@ -695,11 +801,11 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
 
             <div className="inspector-stats-row">
               <div className="inspector-stat">
-                <span className="stat-label">{lang === 'ar' ? 'العلاقات المباشرة' : 'Degree'}</span>
+                <span className="stat-label">{lang === 'ar' ? 'درجة الترابط' : 'Degree'}</span>
                 <span className="stat-val">{selectedNode.degree || 1}</span>
               </div>
               <div className="inspector-stat">
-                <span className="stat-label">PageRank</span>
+                <span className="stat-label">{lang === 'ar' ? 'الأهمية النسبية' : 'PageRank'}</span>
                 <span className="stat-val">{selectedNode.pagerank ? Math.round(selectedNode.pagerank * 100) : 10}%</span>
               </div>
             </div>
@@ -707,16 +813,19 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
             {/* Connected Neighbors List */}
             {connectedMap.has(selectedNode.id) && (
               <div className="inspector-section">
-                <span className="section-title">{lang === 'ar' ? 'الكيانات المتصلة به:' : 'Connected Entities:'}</span>
+                <span className="section-title">{lang === 'ar' ? 'الكيانات المرتبطة:' : 'Connected Entities:'}</span>
                 <div className="connected-tags-list">
-                  {Array.from(connectedMap.get(selectedNode.id) || []).slice(0, 8).map(targetId => {
+                  {Array.from(connectedMap.get(selectedNode.id) || []).slice(0, 10).map(targetId => {
                     const targetNode = simNodes.current.find(n => n.id === targetId);
                     if (!targetNode) return null;
                     return (
                       <span
                         key={targetId}
                         className="connected-tag"
-                        onClick={() => setSelectedNode(targetNode)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedNode(targetNode);
+                        }}
                         title={targetNode.name}
                       >
                         {targetNode.name}

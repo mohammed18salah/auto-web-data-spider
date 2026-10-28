@@ -26,6 +26,7 @@
 [System Architecture](#system-architecture) •
 [Quick Start](#quick-start) •
 [Desktop App](#desktop-app--ui) •
+[Interactive Knowledge Graph](#interactive-knowledge-graph--relationship-viewer) •
 [CLI & Shell](#cli--interactive-shell) •
 [REST API](#rest-api-reference) •
 [Roadmap](#open-source-roadmap)
@@ -280,6 +281,8 @@ auto-web-data-spider/
 │   │   ├── main.js             # Electron main process (spawns Python backend)
 │   │   └── preload.cjs         # ContextBridge security isolation script
 │   ├── src/                    # React 19 Frontend
+│   │   ├── components/
+│   │   │   └── KnowledgeGraphView.tsx # 60 FPS Canvas Graph & Entity Relations Engine
 │   │   ├── App.tsx             # Main Application dashboard & History viewer
 │   │   ├── index.css           # Glassmorphic UI Design System (RTL/LTR, Dark/Light)
 │   │   └── main.tsx            # React application entry point
@@ -372,10 +375,34 @@ The Auto Web Data Spider desktop GUI is engineered for high productivity and int
 
 - **Bilingual Interface**: Seamlessly switch between **العربية (RTL)** and **English (LTR)** with a single click.
 - **Glassmorphic Dark & Light Modes**: Tailored color palettes with ambient mesh gradients and smooth transitions.
+- **Interactive Knowledge Graph (مخطط المعرفة)**: Dedicated visual graph explorer showing real-time nodes, connections, and degrees.
 - **Live Crawl Monitoring**: Real-time timer, analyzed sources counter, active search queries, and expandable logs.
 - **Depth & Source Limit Controls**: Adjust parameters on the fly via smooth slider inputs.
+- **Deep Entity Inspection**: View detailed profiles of people, universities, concepts, and publications with one-click recursive crawl exploration.
 - **One-Click Data Export**: Instant download of structured JSON exports.
 - **History Management**: Review previous crawl runs, examine status badges, and safely delete obsolete sessions.
+
+---
+
+## Interactive Knowledge Graph & Relationship Viewer
+
+Auto Web Data Spider includes an in-depth, hardware-accelerated **Interactive Knowledge Graph Viewer** built with HTML5 Canvas at a consistent 60 FPS:
+
+- **Deep Space Visual Aesthetic**: Pure obsidian canvas (`#020408`) with subtle celestial starfields and camera pan/zoom support.
+- **Physics-Driven Planetary Layout**: Concentric radial orbits (Universities -> People -> Concepts -> Publications) combined with Coulomb repulsion and Hooke's spring attraction keep nodes distinct, legible, and collision-free.
+- **Semantic Entity Classification**:
+  - **People & Peers** (Green): Verified doctors, researchers, professors, and authors.
+  - **Universities & Organizations** (Purple): Academic institutions, faculties, and official bodies.
+  - **Concepts & Disciplines** (Cyan): Domain topics, scientific specialties, and core ideas.
+  - **Publications & Documents** (Rose): Papers, articles, and references.
+- **High-Precision Arabic NLP Filtering**: Dedicated regex boundaries and stop-word filters eliminate false titles (`د.`) and noisy terms for clean knowledge representation.
+- **Interactive Node Inspector**:
+  - Highlights the direct connection network and dims unrelated nodes.
+  - Displays Degree, PageRank importance, and full contextual summaries.
+  - Lists connected entities with one-click navigation.
+  - Features a **"Crawl this entity"** action that launches a new targeted deep-dive around the selected node.
+- **Dynamic Search & Category Filters**: Filter by category pills or search keywords in real time with immediate visual updates.
+- **60 FPS Hardware Performance**: Driven entirely by non-allocating animation references (`useRef`), completely eliminating React state churn and mouse movement freezing.
 
 ---
 
@@ -527,8 +554,9 @@ npm run build
   - Local SQLite persistence with pause/resume support
   - Electron + React 19 desktop GUI with Dark/Light and Arabic/English modes
   - Hardened Electron IPC & strict FastAPI CORS
+  - Interactive 60 FPS Canvas Knowledge Graph visualizer with orbits, clustering, and inspector panel
 - [ ] **v1.1 (Upcoming)**:
-  - 3D interactive knowledge graph visualizer (Three.js / React Force Graph) inside the desktop app.
+  - 3D interactive knowledge graph visualizer (Three.js / WebGL toggle).
   - Export to GEXF / GraphML directly from the UI.
   - Native PDF document crawling and text extraction.
 - [ ] **v1.2**:

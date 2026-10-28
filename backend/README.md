@@ -1,4 +1,4 @@
-# KnowledgeSpider 🕷️
+# KnowledgeSpider
 
 **Autonomous Web Crawling & Knowledge Graph Engine**
 

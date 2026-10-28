@@ -130,34 +130,75 @@ class KnowledgeGraphManager:
                 add_link(root_id, org_id, "ينتمي إلى / جهة أكاديمية", weight=0.95)
 
         # 3. Extract Associated People / Colleagues
-        # Regex for doctors, professors, researchers mentioned
-        people_pattern = r'(?:الدكتور|دكتور|د\.|أستاذ|الاستاذ|أ\.د|الباحث|المهندس|البروفيسور|Dr\.|Prof\.)\s+([\u0600-\u06FF]{3,16}(?:\s+[\u0600-\u06FF]{3,16}){1,3})'
+        # Regex for doctors, professors, researchers mentioned (strictly enforcing non-arabic prefix boundary)
+        people_pattern = r'(?:^|[^\u0600-\u06FF])(?:الدكتور|دكتور|أستاذ|الاستاذ|أ\.د|البروفيسور|د\.|Dr\.|Prof\.)\s+([\u0600-\u06FF]{3,16}(?:\s+[\u0600-\u06FF]{3,16}){1,3})'
         
         medical_noise = {
             "أنف", "اذن", "أذن", "حنجرة", "حنجره", "باطنة", "باطنه", "أسنان", "اسنان", "طوارئ",
-            "طوارىء", "عملية", "عمليه", "جراحة", "جراحه", "عيادة", "عياده", "مركز", "مستشفى",
-            "تخصص", "حجز", "تقييم", "كشف", "استشارة", "استشاره", "دليل", "موقع", "صفحة",
-            "تفاصيل", "عرض", "داخل", "جديد", "سعر", "مدينة", "شارع", "محافظة"
+            "طوارىء", "عملية", "عمليه", "جراحة", "جراحه", "عيادة", "عياده", "مركز", "مراكز",
+            "مستشفى", "مستشفيات", "طبيب", "أطباء", "اطباء", "دكتور", "دكاترة", "تخصص", "تخصصات",
+            "حجز", "تقييم", "تقييمات", "كشف", "استشارة", "استشارات", "دليل", "موقع", "صفحة",
+            "صفحات", "تفاصيل", "التفاصيل", "عرض", "داخل", "جديد", "سعر", "أسعار", "مدينة",
+            "شارع", "محافظة", "مقالات", "مقال", "معلومات", "خدمة", "خدمات", "أقسام", "اقسام"
         }
+
+        arabic_non_person_words = {
+            "كما", "باي", "زينت", "فناء", "المسجد", "القانون", "الفرنسي", "أشار", "قدم", "المرينيون",
+            "كان", "كانت", "قام", "قامت", "قال", "قالت", "تم", "تمت", "يعتبر", "تعتبر", "يعد", "تعد",
+            "أكد", "أكدت", "أوضح", "أوضحت", "ذكر", "ذكرت", "أضاف", "أضافت", "بدأ", "بدأت", "شهد",
+            "التي", "الذي", "الذين", "اللذين", "اللواتي", "اللاتي", "هذا", "هذه", "ذلك", "تلك", "هؤلاء",
+            "منطقة", "المحراب", "السلطان", "السعدي", "دخلاء", "الأعضاء", "الاعضاء", "تراس", "الأصل",
+            "تاريخ", "المغرب", "العراق", "مصر", "الشارع", "المدينة", "المحافظة", "الدولة", "الحكومة",
+            "المدرسة", "المعهد", "الجامعة", "الكلية", "القسم", "الوزارة", "المركز", "المكتبة",
+            "بناء", "تأسيس", "عصر", "عهد", "فترة", "سنة", "عام", "قرن", "خلال", "حول", "بين",
+            "تحت", "فوق", "أمام", "خلف", "داخل", "خارج", "لدى", "عند", "بعد", "قبل", "منذ"
+        }
+
+        def is_stop_token(tok: str) -> bool:
+            clean_tok = re.sub(r'^[وفلكب]', '', tok)
+            return (
+                clean_tok in medical_noise or
+                tok in medical_noise or
+                clean_tok in arabic_non_person_words or
+                tok in arabic_non_person_words or
+                len(tok) <= 2
+            )
+
+        clean_seed = re.sub(r'^(?:دكتور|الدكتور|د\.|أستاذ|الاستاذ|أ\.د)\s+', '', seed_topic).strip()
+        seed_words = set(w for w in re.sub(r'[^\u0600-\u06FF\s]', '', clean_seed).split() if len(w) > 2)
 
         for match in re.finditer(people_pattern, combined_text):
             p_name = match.group(1).strip()
-            # Exclude if it's the root person themselves
-            clean_seed = re.sub(r'^(?:دكتور|الدكتور|د\.|أستاذ|الاستاذ|أ\.د)\s+', '', seed_topic).strip()
-            if p_name not in clean_seed and clean_seed not in p_name and len(p_name.split()) >= 2:
-                # Exclude medical noise words and stop words
-                words = p_name.split()
-                if not any(w in medical_noise for w in words):
-                    if not any(stop in p_name for stop in ["جامعة", "كلية", "قسم", "محافظة", "العراق", "مدينة"]):
-                        found_people[p_name] += 1
+            # Clean punctuation
+            p_name = re.sub(r'[,،.؛:!؟\"\'»«]', '', p_name).strip()
+            words = p_name.split()
+
+            # Must have 2 to 3 name words
+            if len(words) < 2 or len(words) > 3:
+                continue
+
+            # Must not contain any word matching seed person tokens (to avoid "د. محمد صلاح التفاصيل")
+            if any(w in seed_words for w in words):
+                continue
+
+            # Must not contain stop words or medical noise
+            if any(is_stop_token(w) for w in words):
+                continue
+
+            # Must not contain generic institutions
+            if any(stop in p_name for stop in ["جامعة", "كلية", "قسم", "محافظة", "العراق", "مدينة"]):
+                continue
+
+            found_people[p_name] += 1
 
         # Add top connected people
         for p_name, count in found_people.most_common(6):
             p_id = f"person_{abs(hash(p_name)) % 100000}"
             if p_id not in nodes_dict:
+                display_name = p_name if p_name.startswith("د.") or p_name.startswith("أ.") else f"د. {p_name}"
                 nodes_dict[p_id] = {
                     "id": p_id,
-                    "name": f"د. {p_name}",
+                    "name": display_name,
                     "type": "person",
                     "val": min(28, 16 + count * 2),
                     "details": "باحث مشارك / زميل أكاديمي تم رصده في الأوراق والمنشورات",

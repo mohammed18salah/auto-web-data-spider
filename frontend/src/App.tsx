@@ -585,7 +585,7 @@ function App() {
   ));
 
   return (
-    <div className="app-container">
+    <div className="app-container" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {/* HEADER */}
       <header className="glass-panel header">
         {/* Brand Section */}

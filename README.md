@@ -1,8 +1,8 @@
 <div align="center">
 
-# KnowledgeSpider
+# Auto Web Data Spider
 
-### Autonomous Web Crawling, NLP Entity Extraction & Knowledge Graph Discovery Engine
+### Autonomous Web Data Gathering, Deep-Crawling & Knowledge Discovery Engine
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/Python-3.11%20|%203.12%20|%203.13-3776AB.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -11,7 +11,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Electron](https://img.shields.io/badge/Electron-Desktop-47848F.svg?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![NetworkX](https://img.shields.io/badge/NetworkX-Knowledge%20Graph-FF6F00.svg?style=for-the-badge)](https://networkx.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge)](https://github.com/mohammed18salah/data-spider/pulls)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge)](https://github.com/mohammed18salah/auto-web-data-spider/pulls)
 
 <p align="center">
   <b>Transform any seed topic into an interconnected, queryable knowledge graph — 100% local, autonomous, and free of proprietary API tokens.</b>
@@ -21,7 +21,7 @@
 [Comparison Matrix](#why-knowledgespider-competitive-comparison) •
 [How It Works](#how-it-works-autonomous-exploration--deep-branching-engine) •
 [Anti-Bot & Playwright](#anti-bot-protection--javascript-handling-playwright-engine) •
-[KnowledgeSpider vs OpenClaw & AI Agents](#detailed-comparison-knowledgespider-vs-openclaw--agentic-ai-scrapers) •
+[Auto Web Data Spider vs OpenClaw & AI Agents](#detailed-comparison-auto-web-data-spider-vs-openclaw--agentic-ai-scrapers) •
 [System Architecture](#system-architecture) •
 [Quick Start](#quick-start) •
 [Desktop App](#desktop-app--ui) •
@@ -35,7 +35,7 @@
 
 ## Overview
 
-**KnowledgeSpider** is an open-source autonomous web discovery and knowledge-synthesis system. Given any single keyword or seed topic (e.g. *"Quantum Computing"*, *"Cybersecurity Frameworks"*, or *"Domain Name System"*), KnowledgeSpider autonomously:
+**Auto Web Data Spider** is an open-source autonomous web discovery and knowledge-synthesis system. Given any single keyword or seed topic (e.g. *"Quantum Computing"*, *"Cybersecurity Frameworks"*, or *"Domain Name System"*), Auto Web Data Spider autonomously:
 
 1. **Searches & Explores**: Queries privacy-focused search engines (DuckDuckGo) and discovers authoritative web sources.
 2. **Fetches & Sanitizes**: Parses HTML content, adheres strictly to `robots.txt`, rotates user agents, and filters out boilerplate/low-value markup.
@@ -47,11 +47,11 @@
 
 ---
 
-## Why KnowledgeSpider? Competitive Comparison
+## Why Auto Web Data Spider? Competitive Comparison
 
-Most existing web scrapers either require manual rule-writing, dump unstructured plain text, or rely on expensive, non-deterministic cloud LLMs. Here is how KnowledgeSpider compares against standard scrapers and modern AI crawling platforms:
+Most existing web scrapers either require manual rule-writing, dump unstructured plain text, or rely on expensive, non-deterministic cloud LLMs. Here is how Auto Web Data Spider compares against standard scrapers and modern AI crawling platforms:
 
-| Feature / Dimension | **KnowledgeSpider** | **Scrapy** | **AutoGPT / Agent Scrapers** | **Crawl4AI / Firecrawl** | **Neo4j / Memgraph Stacks** |
+| Feature / Dimension | **Auto Web Data Spider** | **Scrapy** | **AutoGPT / Agent Scrapers** | **Crawl4AI / Firecrawl** | **Neo4j / Memgraph Stacks** |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Autonomous Topic Discovery** | **Built-in** (automatic search & branch) | Manual spiders & link extractors | Supported, but prone to drifting | URL-based scraping only | Graph only, no crawler |
 | **NLP Entity & Noun Extraction** | **Built-in (spaCy local)** | Requires custom pipelines | Requires cloud LLM tokens | Markdown / LLM extraction | Manual ingestion |
@@ -68,7 +68,7 @@ Most existing web scrapers either require manual rule-writing, dump unstructured
 
 ## How It Works: Autonomous Exploration & Deep-Branching Engine
 
-Unlike standard scrapers that demand predefined sitemaps or static link lists, KnowledgeSpider acts as an autonomous conceptual cartographer. It discovers, explores, and deep-dives into unfamiliar domains through a 6-stage closed-loop pipeline:
+Unlike standard scrapers that demand predefined sitemaps or static link lists, Auto Web Data Spider acts as an autonomous conceptual cartographer. It discovers, explores, and deep-dives into unfamiliar domains through a 6-stage closed-loop pipeline:
 
 ```mermaid
 sequenceDiagram
@@ -124,10 +124,10 @@ sequenceDiagram
 
 Modern web pages are frequently built as dynamic client-side Single Page Applications (SPAs using React, Angular, or Vue) or guarded by anti-bot verification challenges (Cloudflare, Akamai, or basic CAPTCHA gates). Traditional HTTP client libraries (such as `requests`, `urllib`, or raw `curl`) fail on these sites with blank pages or immediate `403 Forbidden` errors.
 
-KnowledgeSpider solves this with an integrated browser automation layer:
+Auto Web Data Spider solves this with an integrated browser automation layer:
 
 ### 1. Real Headless Chromium Engine (Playwright)
-Rather than firing synthetic HTTP GET requests, KnowledgeSpider launches a headless Chromium instance via **Playwright**:
+Rather than firing synthetic HTTP GET requests, Auto Web Data Spider launches a headless Chromium instance via **Playwright**:
 - **Full JavaScript Hydration**: Waits for `domcontentloaded` and client-side scripts to evaluate before extracting HTML.
 - **Client-Side Rendering**: Intercepts SPAs and dynamic feeds that cannot be scraped with static parsers.
 
@@ -146,19 +146,19 @@ Rather than firing synthetic HTTP GET requests, KnowledgeSpider launches a headl
 
 ---
 
-## Detailed Comparison: KnowledgeSpider vs OpenClaw & Agentic AI Scrapers
+## Detailed Comparison: Auto Web Data Spider vs OpenClaw & Agentic AI Scrapers
 
-How does KnowledgeSpider differ from tools like **OpenClaw** or recent **autonomous AI web agents** (e.g. ScrapeGraphAI, AutoGPT web tools, BrowserGym)?
+How does Auto Web Data Spider differ from tools like **OpenClaw** or recent **autonomous AI web agents** (e.g. ScrapeGraphAI, AutoGPT web tools, BrowserGym)?
 
-### 1. KnowledgeSpider vs OpenClaw
-| Dimension | KnowledgeSpider | OpenClaw / Repo Crawlers |
+### 1. Auto Web Data Spider vs OpenClaw
+| Dimension | Auto Web Data Spider | OpenClaw / Repo Crawlers |
 | :--- | :--- | :--- |
 | **Primary Goal** | **Autonomous Domain Knowledge Discovery**: Builds an interconnected concept graph from any topic. | **Targeted Extraction / Auditing**: Focused on predefined website scraping, PR reviews, and repo audits. |
 | **Input Required** | **A single idea or keyword** (e.g. `"Raft Consensus"`). | **Specific URLs, sitemaps, or repository targets**. |
 | **Exploration Model** | Autonomous recursive branching across the open web. | Pre-configured target scraping without conceptual branching. |
 | **Output Type** | Directed NetworkX Knowledge Graph, PageRank centrality scores, and entities. | Flat files, code diffs, or specific extracted data points. |
 
-### 2. KnowledgeSpider vs AI Data Gathering Agents (LLM-in-the-Loop)
+### 2. Auto Web Data Spider vs AI Data Gathering Agents (LLM-in-the-Loop)
 Modern autonomous AI agents (such as ScrapeGraphAI, AutoGPT, or Multi-Agent Web Seekers) operate by feeding entire raw HTML / accessibility trees into cloud LLMs on every single action:
 
 ```
@@ -168,20 +168,20 @@ Cost: ~$0.05 to $0.20 PER PAGE. 200 pages = $10.00 – $40.00+
 ```
 
 ```
-KnowledgeSpider Engine Loop (Instant & Free):
+Auto Web Data Spider Engine Loop (Instant & Free):
 Page HTML -> Playwright Chromium -> Local spaCy NER -> TextRank -> NetworkX -> SQLite
 Cost: $0.00. 100% Deterministic. Zero API latency. Zero token limits.
 ```
 
-#### Key Differentiators of KnowledgeSpider:
+#### Key Differentiators of Auto Web Data Spider:
 * **Zero Token Cost ($0.00)**: No recurring OpenAI / Anthropic bills. You can crawl 10,000 pages for free on consumer hardware.
-* **No Drift / Hallucination**: AI agents frequently lose focus after 2-3 hops (e.g. searching for "Kubernetes" and ending up on a cloud provider's pricing calculator). KnowledgeSpider uses mathematical relevance scoring and queue prioritization to stay strictly bound to the subject matter.
-* **Topological Concept Maps vs Raw Text Dumps**: AI scrapers output disconnected markdown files. KnowledgeSpider outputs an interconnected knowledge graph with PageRank metrics identifying which terms are the foundational pillars of the domain.
+* **No Drift / Hallucination**: AI agents frequently lose focus after 2-3 hops (e.g. searching for "Kubernetes" and ending up on a cloud provider's pricing calculator). Auto Web Data Spider uses mathematical relevance scoring and queue prioritization to stay strictly bound to the subject matter.
+* **Topological Concept Maps vs Raw Text Dumps**: AI scrapers output disconnected markdown files. Auto Web Data Spider outputs an interconnected knowledge graph with PageRank metrics identifying which terms are the foundational pillars of the domain.
 * **Turnkey Desktop App**: Includes a native Electron + React 19 GUI with bilingual (Arabic/English) support and local SQLite management—not just an experimental command-line script.
 
 ---
 
-## What Makes KnowledgeSpider a Standout Open-Source Project?
+## What Makes Auto Web Data Spider a Standout Open-Source Project?
 
 - **Zero Cloud Lock-in & Privacy First**: No OpenAI/Anthropic API keys required. Everything runs locally on your machine using spaCy, NLTK, and sumy.
 - **RAG-Ready Structured Outputs**: Directly feeds modern Vector Databases and RAG pipelines (LangChain, LlamaIndex, Ollama, ChromaDB) with pre-extracted entities and PageRank-weighted summaries.
@@ -200,7 +200,7 @@ Cost: $0.00. 100% Deterministic. Zero API latency. Zero token limits.
 
 ## System Architecture
 
-The following diagram illustrates the complete end-to-end data processing lifecycle inside KnowledgeSpider:
+The following diagram illustrates the complete end-to-end data processing lifecycle inside Auto Web Data Spider:
 
 ```mermaid
 flowchart TD
@@ -215,7 +215,7 @@ flowchart TD
         CfgMgr["Config Manager & Isolation"]
     end
 
-    subgraph Engine ["KnowledgeSpider Core Engine"]
+    subgraph Engine ["Auto Web Data Spider Core Engine"]
         Orch["Crawler Orchestrator"]
         Q["Priority Topic Queue<br/>(depth ASC, relevance DESC)"]
         SE["DuckDuckGo Query Engine"]
@@ -254,7 +254,7 @@ flowchart TD
 ## Repository Layout
 
 ```text
-data-spider/
+auto-web-data-spider/
 ├── backend/
 │   ├── knowledge_spider/       # Core Python Engine
 │   │   ├── cli/                # Typer CLI and Interactive Shell (REPL)
@@ -367,7 +367,7 @@ data-spider/
 
 ## Desktop App & UI
 
-The KnowledgeSpider desktop GUI is engineered for high productivity and intuitive visual monitoring:
+The Auto Web Data Spider desktop GUI is engineered for high productivity and intuitive visual monitoring:
 
 - **Bilingual Interface**: Seamlessly switch between **العربية (RTL)** and **English (LTR)** with a single click.
 - **Glassmorphic Dark & Light Modes**: Tailored color palettes with ambient mesh gradients and smooth transitions.
@@ -380,7 +380,7 @@ The KnowledgeSpider desktop GUI is engineered for high productivity and intuitiv
 
 ## CLI & Interactive Shell
 
-KnowledgeSpider includes a full-featured Command Line Interface built with **Typer** and **Rich**.
+Auto Web Data Spider includes a full-featured Command Line Interface built with **Typer** and **Rich**.
 
 ### Start a Crawl from Terminal
 
@@ -496,7 +496,7 @@ domains = [
 
 ## Testing & Validation
 
-KnowledgeSpider includes a 22-step automated verification suite covering database models, NLP summarizers, deduplication, robots parsing, and graph algorithms:
+Auto Web Data Spider includes a 22-step automated verification suite covering database models, NLP summarizers, deduplication, robots parsing, and graph algorithms:
 
 ```bash
 cd backend
@@ -538,7 +538,7 @@ npm run build
 
 ## Contributing
 
-Contributions are warmly welcomed! KnowledgeSpider thrives on community ideas, bug reports, and pull requests.
+Contributions are warmly welcomed! Auto Web Data Spider thrives on community ideas, bug reports, and pull requests.
 
 1. **Fork** the repository.
 2. **Create** a feature branch: `git checkout -b feat/amazing-feature`.
@@ -557,5 +557,5 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 ---
 
 <div align="center">
-  <sub>Built by the KnowledgeSpider Team. If you find this project useful, please consider starring the repository on GitHub!</sub>
+  <sub>Built by the Auto Web Data Spider Team. If you find this project useful, please consider starring the repository on GitHub!</sub>
 </div>

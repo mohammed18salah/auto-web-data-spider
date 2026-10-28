@@ -28,7 +28,7 @@ export interface SessionHistoryItem {
 
 const t = {
   ar: {
-    title: 'سبايدر المعرفة',
+    title: 'Auto Web Data Spider',
     home: 'الرئيسية',
     history: 'الداتا السابقة',
     settings: 'الإعدادات',
@@ -75,7 +75,7 @@ const t = {
     saveSuccess: 'تم حفظ وتحديث الجلسة بنجاح.'
   },
   en: {
-    title: 'Knowledge Spider',
+    title: 'Auto Web Data Spider',
     home: 'Home',
     history: 'History',
     settings: 'Settings',

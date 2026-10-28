@@ -3,14 +3,14 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.backends.legacy:build"
 
 [project]
-name = "knowledge-spider"
+name = "auto-web-data-spider"
 version = "1.0.0"
-description = "Autonomous web crawling and knowledge graph engine powered by NLP and SQLite."
+description = "Autonomous web data gathering, NLP entity extraction and knowledge engine."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "KnowledgeSpider Engine" }]
-keywords = ["web-crawler", "knowledge-graph", "nlp", "spider", "autonomous"]
+authors = [{ name = "AutoWebDataSpider Team" }]
+keywords = ["web-crawler", "data-spider", "data-harvester", "knowledge-graph", "nlp", "autonomous"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -35,9 +35,10 @@ dependencies = [
 
 [project.scripts]
 spider = "knowledge_spider.cli.main:app"
+autospider = "knowledge_spider.cli.main:app"
 
 [project.urls]
-Repository = "https://github.com/mohammed18salah/data-spider"
+Repository = "https://github.com/mohammed18salah/auto-web-data-spider"
 
 [tool.setuptools.packages.find]
 where = ["."]

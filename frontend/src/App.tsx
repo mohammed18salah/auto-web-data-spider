@@ -391,7 +391,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="sidebar-section" style={{ flex: 1 }}>
+              <div className="sidebar-section">
                 <h2 className="sidebar-title"><Activity size={20} /> {loc.settingsAndNumbers}</h2>
                 <div className="config-box">
                    <label>{loc.searchDepth}: {maxDepth}</label>

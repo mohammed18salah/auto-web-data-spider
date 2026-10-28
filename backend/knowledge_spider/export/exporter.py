@@ -17,6 +17,7 @@ from knowledge_spider.storage.database import (
     get_topics_by_session,
     get_edges_by_session,
     get_sources_by_topic,
+    get_sources_by_session,
     get_terms_by_topic,
 )
 from knowledge_spider.utils.logger import logger
@@ -39,8 +40,21 @@ class DataExporter:
         topics = get_topics_by_session(self.session_id)
         edges = get_edges_by_session(self.session_id)
 
+        all_sources = get_sources_by_session(self.session_id)
         payload = {
             "session": summary,
+            "all_sources": [
+                {
+                    "url": s.url,
+                    "domain": s.domain,
+                    "title": s.title,
+                    "summary": s.summary,
+                    "quality_score": s.quality_score,
+                    "word_count": s.word_count,
+                    "crawled_at": s.crawled_at.isoformat() if s.crawled_at else None,
+                }
+                for s in all_sources
+            ],
             "topics": [],
             "edges": [
                 {

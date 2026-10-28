@@ -20,6 +20,7 @@ from knowledge_spider.core.session import create_session
 from knowledge_spider.storage.database import (
     create_db_and_tables,
     get_session_stats,
+    get_sources_by_session,
     list_sessions,
     update_session_status,
     delete_session,
@@ -103,12 +104,17 @@ def read_root():
 
 @app.post("/api/crawl")
 def start_crawl(req: CrawlRequest, background_tasks: BackgroundTasks):
-    """Starts a new crawl session with an isolated configuration copy."""
+    """Starts a new crawl session with an isolated configuration copy for rocket speed."""
     # Use isolated session config so per-request parameters do NOT mutate the global singleton
     cfg = get_session_config({
         "crawler": {
             "max_depth": req.max_depth,
             "max_sources": req.max_sources,
+            "crawl_delay_seconds": 0.0,
+            "max_urls_per_query": 8,
+        },
+        "nlp": {
+            "min_content_words": 60,
         }
     })
 
@@ -191,6 +197,26 @@ def get_session_info(session_id: str):
                     "live_logs": [],
                 })
     return stats
+
+
+@app.get("/api/session/{session_id}/sources")
+def get_session_sources_endpoint(session_id: str):
+    """Returns all crawled sources for a specific session with details."""
+    sources = get_sources_by_session(session_id)
+    return [
+        {
+            "id": s.id,
+            "url": s.url,
+            "domain": s.domain,
+            "title": s.title or s.url,
+            "summary": s.summary or "",
+            "quality_score": s.quality_score,
+            "depth_level": s.depth_level,
+            "word_count": s.word_count,
+            "crawled_at": s.crawled_at.isoformat() if s.crawled_at else None,
+        }
+        for s in sources
+    ]
 
 
 @app.delete("/api/session/{session_id}")

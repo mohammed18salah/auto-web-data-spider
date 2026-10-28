@@ -52,17 +52,18 @@ def fetch_page(url: str, config: Optional[Config] = None) -> Optional[Dict[str, 
     logger.debug(f"Fetching: {url}")
 
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "User-Agent": "KnowledgeSpiderBot/1.0 (https://github.com/mohammed18salah/data-spider; contact@example.com) Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
     }
 
     # Step 1: Fast HTTP request via httpx
+    needs_playwright = False
     try:
         r = httpx.get(
             url,
             headers=headers,
-            timeout=12.0,
+            timeout=4.0,
             follow_redirects=True,
             verify=False,
         )
@@ -74,39 +75,42 @@ def fetch_page(url: str, config: Optional[Config] = None) -> Optional[Dict[str, 
                 "headers": dict(r.headers),
                 "fetched_at": datetime.now(timezone.utc).isoformat(),
             }
+        elif r.status_code < 400:
+            needs_playwright = True
     except Exception as http_err:
-        logger.debug(f"HTTP fetch failed for {url} ({http_err}), attempting Playwright fallback...")
+        logger.debug(f"HTTP fetch failed for {url} ({http_err})")
+        return None
 
-    # Step 2: Headless Playwright fallback
-    try:
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            context = browser.new_context(
-                viewport={"width": 1280, "height": 720},
-                user_agent=headers["User-Agent"],
-            )
-            page = context.new_page()
-            response = page.goto(url, wait_until="domcontentloaded", timeout=12000)
+    # Step 2: Headless Playwright fallback only for empty SPAs (fast 4s timeout)
+    if needs_playwright:
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(
+                    viewport={"width": 1280, "height": 720},
+                    user_agent=headers["User-Agent"],
+                )
+                page = context.new_page()
+                response = page.goto(url, wait_until="domcontentloaded", timeout=4000)
 
-            if not response or response.status >= 400:
+                if not response or response.status >= 400:
+                    browser.close()
+                    return None
+
+                html_content = page.content()
+                final_url = page.url
+                status = response.status
                 browser.close()
-                return None
 
-            time.sleep(1)
-            html_content = page.content()
-            final_url = page.url
-            status = response.status
-            browser.close()
-
-            return {
-                "url": final_url,
-                "status_code": status,
-                "html": html_content,
-                "headers": {},
-                "fetched_at": datetime.now(timezone.utc).isoformat(),
-            }
-    except Exception as e:
-        logger.warning(f"Error fetching {url}: {e}")
+                return {
+                    "url": final_url,
+                    "status_code": status,
+                    "html": html_content,
+                    "headers": {},
+                    "fetched_at": datetime.now(timezone.utc).isoformat(),
+                }
+        except Exception as e:
+            logger.warning(f"Error fetching {url}: {e}")
 
     return None

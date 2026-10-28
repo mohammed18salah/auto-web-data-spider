@@ -40,32 +40,36 @@ def _get_robots_url(url: str) -> str:
 
 def _fetch_robot_parser(base_url: str) -> urllib.robotparser.RobotFileParser | None:
     """
-    Fetch and parse the robots.txt for a given base URL.
+    Fetch and parse the robots.txt for a given base URL rapidly via httpx.
 
     Args:
         base_url: The scheme://netloc root of the site.
 
     Returns:
-        A populated RobotFileParser, or None if fetching failed.
+        A populated RobotFileParser, or None if fetching failed or timed out.
     """
+    import httpx
+
     robots_url = f"{base_url}/robots.txt"
     parser = urllib.robotparser.RobotFileParser()
     parser.set_url(robots_url)
     
     try:
-        req = urllib.request.Request(
+        r = httpx.get(
             robots_url,
-            headers={"User-Agent": "KnowledgeSpiderBot/1.0 (Python)"}
+            headers={"User-Agent": "KnowledgeSpiderBot/1.0 (https://github.com/knowledge-spider; contact@example.com)"},
+            timeout=3.0,
+            follow_redirects=True,
+            verify=False,
         )
-        with urllib.request.urlopen(req, timeout=10) as response:
-            raw = response.read().decode("utf-8", errors="ignore")
-            lines = raw.splitlines()
-            
-        parser.parse(lines)
-        logger.debug(f"Fetched and parsed robots.txt for {base_url}")
-        return parser
-    except Exception as e:
-        logger.warning(f"Failed to fetch robots.txt for {base_url}: {e}")
+        if r.status_code == 200 and r.text:
+            lines = r.text.splitlines()
+            parser.parse(lines)
+            logger.debug(f"Fetched and parsed robots.txt for {base_url}")
+            return parser
+        return None
+    except Exception:
+        # If robots.txt times out (>1.5s) or fails, don't stall the crawler
         return None
 
 

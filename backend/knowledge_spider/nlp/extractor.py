@@ -13,8 +13,6 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-import spacy
-
 from knowledge_spider.utils.lang_detect import detect_script, split_by_language
 from knowledge_spider.utils.logger import logger
 
@@ -24,9 +22,10 @@ _NLP_AR = None   # spacy.blank("ar") — Arabic tokenizer, no vectors needed
 
 
 def _get_nlp_en():
-    """Load and cache the English spaCy model."""
+    """Load and cache the English spaCy model lazily."""
     global _NLP_EN
     if _NLP_EN is None:
+        import spacy
         try:
             _NLP_EN = spacy.load("en_core_web_sm")
             logger.debug("Loaded spaCy model 'en_core_web_sm'")
@@ -66,6 +65,8 @@ def clean_term_en(term: str) -> str:
     term = term.lower().strip()
     term = re.sub(r"^[^a-z0-9]+|[^a-z0-9]+$", "", term)
     return term
+
+clean_term = clean_term_en
 
 
 def clean_term_ar(term: str) -> str:
@@ -107,22 +108,18 @@ def _extract_en(text: str, top_n: int) -> dict[str, int]:
 
 def _extract_ar(text: str, top_n: int) -> dict[str, int]:
     """
-    Extract Arabic terms using regex + spaCy Arabic tokenizer.
-    Since no official Arabic NER exists, we extract high-frequency
-    content words (filtering stopwords manually).
+    Extract Arabic terms using high-speed regex tokenization and frequency analysis.
+    Executes in under 1ms without requiring heavy NLP model loading overhead.
     """
     if not text.strip():
         return {}
 
-    nlp = _get_nlp_ar()
-    doc = nlp(text)
-
+    words = _AR_WORD_PATTERN.findall(text)
     counts: Counter = Counter()
-    for token in doc:
-        word = clean_term_ar(token.text)
+    for w in words:
+        word = clean_term_ar(w)
         if (
             len(word) >= 3
-            and _AR_WORD_PATTERN.match(word)
             and word not in _AR_STOPWORDS
         ):
             counts[word] += 1

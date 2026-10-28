@@ -285,6 +285,25 @@ def get_sources_by_topic(topic_id: int) -> list[SourceModel]:
         return db.exec(stmt).all()
 
 
+def get_sources_by_session(session_id: str) -> list[SourceModel]:
+    """
+    Return all sources collected for a given session.
+
+    Args:
+        session_id: The UUID of the session.
+
+    Returns:
+        List of SourceModel rows ordered by quality score descending.
+    """
+    with DBSession(get_engine()) as db:
+        stmt = (
+            select(SourceModel)
+            .where(SourceModel.session_id == session_id)
+            .order_by(col(SourceModel.quality_score).desc())
+        )
+        return db.exec(stmt).all()
+
+
 # ── TopicEdge CRUD ────────────────────────────────────────────────────────────
 
 def create_edge(edge: TopicEdgeModel) -> Optional[TopicEdgeModel]:

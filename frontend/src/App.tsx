@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   Sun, Moon, Settings, Database, Clock, 
   Play, Square, Save, Download, Globe, 
-  Terminal, Activity, RefreshCw, Home, Languages, Trash2
+  Terminal, Activity, RefreshCw, Home, Languages, Trash2,
+  Eye, X, ExternalLink, AlertCircle
 } from 'lucide-react';
 import axios from 'axios';
 import './index.css';
@@ -24,6 +25,18 @@ export interface SessionHistoryItem {
   status: string;
   sources_analyzed: number;
   created_at: string | null;
+}
+
+export interface CrawledSourceItem {
+  id?: number;
+  url: string;
+  domain: string;
+  title: string;
+  summary: string;
+  quality_score: number;
+  depth_level?: number;
+  word_count?: number;
+  crawled_at?: string | null;
 }
 
 const t = {
@@ -48,13 +61,13 @@ const t = {
     export: 'التصدير',
     browserWait: 'نافذة Chrome للزحف الآلي...',
     browserSearching: 'البحث عن',
-    browserExploring: 'يتم الآن استعراض الصفحات واستخراج المعرفة...',
+    browserExploring: 'يتم الآن استعراض الصفحات واستخراج المعرفة بسرعة فائقة...',
     browserStopped: 'نافذة Chrome (متوقفة)',
     logTab: 'نافذة Log',
     terminalTab: 'نافذة التيرمنل',
     enterTopicError: 'الرجاء إدخال موضوع البحث أولاً!',
-    connecting: 'جاري الاتصال بالخادم لبدء الزحف عن:',
-    startSuccess: 'تم بدء عملية الزحف بنجاح! معرف الجلسة:',
+    connecting: 'جاري الاتصال بالخادم والبحث الفوري عن:',
+    startSuccess: 'تم بدء عملية الزحف الصاروخية بنجاح! معرف الجلسة:',
     serverError: 'فشل الاتصال بالخادم:',
     crawlStopped: 'تم إيقاف عملية الزحف.',
     stoppingCrawl: 'جاري إرسال إشارة إيقاف الزحف إلى الخادم...',
@@ -72,7 +85,22 @@ const t = {
     deleteConfirm: 'هل أنت متأكد من حذف هذه الجلسة وجميع بياناتها؟',
     deleteSuccess: 'تم حذف الجلسة بنجاح.',
     exportSuccess: 'تم تصدير وتنزيل ملف البيانات بنجاح!',
-    saveSuccess: 'تم حفظ وتحديث الجلسة بنجاح.'
+    saveSuccess: 'تم حفظ وتحديث الجلسة بنجاح.',
+    viewDetails: 'عرض التفاصيل',
+    downloadData: 'تحميل البيانات (JSON)',
+    deleteSession: 'حذف الجلسة',
+    sessionDetailsTitle: 'تفاصيل جلسة الزحف واستعراض الداتا',
+    allCrawledSources: 'المصادر والصفحات المفهرسة',
+    noSourcesFound: 'لم يتم أرشفة مصادر لهذه الجلسة بعد.',
+    conceptsExtracted: 'المفاهيم المستخلصة',
+    topicsDiscovered: 'الموضوعات المكتشفة',
+    averageQuality: 'متوسط الجودة',
+    wordsCount: 'كلمة',
+    viewOriginal: 'فتح الرابط الأصلي',
+    downloading: 'جاري التحميل...',
+    downloadFullJson: 'تحميل ملف البيانات الكامل (JSON)',
+    close: 'إغلاق',
+    loadingDetails: 'جاري جلب تفاصيل الجلسة والمصادر...'
   },
   en: {
     title: 'Auto Web Data Spider',
@@ -95,13 +123,13 @@ const t = {
     export: 'Export',
     browserWait: 'Chrome window for autonomous crawling...',
     browserSearching: 'Searching for',
-    browserExploring: 'Browsing pages and extracting knowledge...',
+    browserExploring: 'Browsing pages and extracting knowledge rapidly...',
     browserStopped: 'Chrome window (stopped)',
     logTab: 'Log Window',
     terminalTab: 'Terminal Window',
     enterTopicError: 'Please enter a search topic first!',
-    connecting: 'Connecting to server to start crawl for:',
-    startSuccess: 'Crawl process started successfully! Session ID:',
+    connecting: 'Connecting to server and searching for:',
+    startSuccess: 'Rocket crawl started successfully! Session ID:',
     serverError: 'Failed to connect to server:',
     crawlStopped: 'Crawl process stopped.',
     stoppingCrawl: 'Sending stop signal to server...',
@@ -119,7 +147,22 @@ const t = {
     deleteConfirm: 'Are you sure you want to delete this session and all its records?',
     deleteSuccess: 'Session deleted successfully.',
     exportSuccess: 'Data exported and downloaded successfully!',
-    saveSuccess: 'Session saved and updated successfully.'
+    saveSuccess: 'Session saved and updated successfully.',
+    viewDetails: 'View Details',
+    downloadData: 'Download JSON',
+    deleteSession: 'Delete Session',
+    sessionDetailsTitle: 'Crawl Session Details & Data Explorer',
+    allCrawledSources: 'Indexed Sources & Web Pages',
+    noSourcesFound: 'No sources indexed for this session yet.',
+    conceptsExtracted: 'Extracted Terms',
+    topicsDiscovered: 'Discovered Topics',
+    averageQuality: 'Avg Quality',
+    wordsCount: 'words',
+    viewOriginal: 'Open Link',
+    downloading: 'Downloading...',
+    downloadFullJson: 'Download Complete JSON',
+    close: 'Close',
+    loadingDetails: 'Loading session details and sources...'
   }
 };
 
@@ -156,6 +199,16 @@ function App() {
 
   const [historyList, setHistoryList] = useState<SessionHistoryItem[]>([]);
 
+  // Detailed view & export modal state
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSessionTopic, setSelectedSessionTopic] = useState<string>('');
+  const [selectedSessionStats, setSelectedSessionStats] = useState<any | null>(null);
+  const [selectedSessionSources, setSelectedSessionSources] = useState<CrawledSourceItem[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const logsEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
@@ -168,6 +221,12 @@ function App() {
         .catch(err => console.error("Error fetching sessions:", err));
     }
   }, [page]);
+
+  useEffect(() => {
+    if (activeTab === 'log') {
+      logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs, activeTab]);
 
   useEffect(() => {
     let interval: number;
@@ -219,7 +278,7 @@ function App() {
         } catch (err) {
           console.error("Polling error", err);
         }
-      }, 2000) as unknown as number;
+      }, 750) as unknown as number; // 750ms for lightning responsive UI
     }
     return () => clearInterval(pollInterval);
   }, [isRunning, sessionId, lang]);
@@ -282,10 +341,55 @@ function App() {
     try {
       await axios.delete(`${API_BASE}/session/${id}`);
       setHistoryList(prev => prev.filter(s => s.id !== id));
+      if (selectedSessionId === id) {
+        setSelectedSessionId(null);
+      }
       addLog('success', `${loc.deleteSuccess} (${id.slice(0, 8)}...)`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       addLog('error', `${loc.serverError} ${msg}`);
+    }
+  };
+
+  const handleViewSession = async (session: SessionHistoryItem) => {
+    setSelectedSessionId(session.id);
+    setSelectedSessionTopic(session.topic);
+    setLoadingDetails(true);
+    setSelectedSessionSources([]);
+    setSelectedSessionStats(null);
+    try {
+      const [statsRes, sourcesRes] = await Promise.all([
+        axios.get(`${API_BASE}/session/${session.id}`),
+        axios.get<CrawledSourceItem[]>(`${API_BASE}/session/${session.id}/sources`)
+      ]);
+      setSelectedSessionStats(statsRes.data);
+      setSelectedSessionSources(sourcesRes.data || []);
+    } catch (err) {
+      console.error("Error fetching session details:", err);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const handleDownloadSession = async (sId: string, topicName: string) => {
+    try {
+      setDownloadingId(sId);
+      const res = await axios.get(`${API_BASE}/export/${sId}`);
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const safeTopic = (topicName || 'session').replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
+      link.download = `spider_${safeTopic}_${sId.slice(0, 8)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err: unknown) {
+      console.error("Export download failed:", err);
+      alert(lang === 'ar' ? 'تعذر تنزيل البيانات، تأكد من وجود ملفات التصدير' : 'Failed to download session export.');
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -554,7 +658,12 @@ function App() {
                   </button>
                 </div>
                 <div className="tab-content">
-                  {activeTab === 'log' ? renderLogs() : (
+                  {activeTab === 'log' ? (
+                    <>
+                      {renderLogs()}
+                      <div ref={logsEndRef} />
+                    </>
+                  ) : (
                     <>
                       <div className="log-line" style={{ color: '#fbbf24' }}>Welcome to Spider Terminal v1.0</div>
                       <div className="log-line">spider-engine&gt; {isRunning ? `running crawl --topic "${searchQuery}"` : 'waiting...'}</div>
@@ -593,7 +702,7 @@ function App() {
                 </thead>
                 <tbody>
                   {historyList.length > 0 ? historyList.map(session => (
-                    <tr key={session.id}>
+                    <tr key={session.id} style={{ cursor: 'pointer' }} onClick={() => handleViewSession(session)}>
                       <td className="font-mono text-muted">{session.id.slice(0, 8)}...</td>
                       <td className="font-semibold">{session.topic}</td>
                       <td>
@@ -605,14 +714,30 @@ function App() {
                           {session.status}
                         </span>
                       </td>
-                      <td style={{ textAlign: 'center' }}>
-                         <button 
-                           className="btn-icon btn-danger-hover" 
-                           title={lang === 'ar' ? 'حذف الجلسة' : 'Delete Session'}
-                           onClick={() => handleDeleteSession(session.id)}
-                         >
-                           <Trash2 size={16} />
-                         </button>
+                      <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                         <div className="history-actions-cell">
+                           <button 
+                             className="btn-icon btn-action-view" 
+                             title={loc.viewDetails}
+                             onClick={() => handleViewSession(session)}
+                           >
+                             <Eye size={16} />
+                           </button>
+                           <button 
+                             className={`btn-icon btn-action-download ${downloadingId === session.id ? 'spin-animation' : ''}`} 
+                             title={loc.downloadData}
+                             onClick={() => handleDownloadSession(session.id, session.topic)}
+                           >
+                             <Download size={16} />
+                           </button>
+                           <button 
+                             className="btn-icon btn-danger-hover" 
+                             title={loc.deleteSession}
+                             onClick={() => handleDeleteSession(session.id)}
+                           >
+                             <Trash2 size={16} />
+                           </button>
+                         </div>
                       </td>
                     </tr>
                   )) : (
@@ -628,6 +753,135 @@ function App() {
             </div>
           </div>
         )}
+
+      {/* SESSION DETAILS & DATA EXPLORER MODAL */}
+      {selectedSessionId && (
+        <div className="modal-backdrop" onClick={() => setSelectedSessionId(null)}>
+          <div className="session-details-modal" onClick={e => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="modal-header">
+              <div className="modal-title-group">
+                <Database size={22} style={{ color: 'var(--accent-color)' }} />
+                <div>
+                  <h3 className="modal-title">{selectedSessionTopic || loc.sessionDetailsTitle}</h3>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+                    ID: {selectedSessionId}
+                  </span>
+                </div>
+              </div>
+
+              <div className="modal-header-actions">
+                <button 
+                  className="btn-modal-download"
+                  onClick={() => handleDownloadSession(selectedSessionId, selectedSessionTopic)}
+                  disabled={downloadingId === selectedSessionId}
+                >
+                  <Download size={16} className={downloadingId === selectedSessionId ? 'spin-animation' : ''} />
+                  <span>{downloadingId === selectedSessionId ? loc.downloading : loc.downloadFullJson}</span>
+                </button>
+                <button 
+                  className="btn-modal-close"
+                  onClick={() => setSelectedSessionId(null)}
+                  title={loc.close}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="modal-body">
+              {loadingDetails ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px', gap: '16px', color: 'var(--text-secondary)' }}>
+                  <RefreshCw size={36} className="spin-animation" style={{ color: 'var(--accent-color)' }} />
+                  <p style={{ fontWeight: 600 }}>{loc.loadingDetails}</p>
+                </div>
+              ) : (
+                <>
+                  {/* Top Stats Grid */}
+                  <div className="modal-stats-grid">
+                    <div className="modal-stat-card">
+                      <span className="modal-stat-label">{loc.sourcesAnalyzed}</span>
+                      <span className="modal-stat-val" style={{ color: '#38bdf8' }}>
+                        {selectedSessionStats?.sources_total ?? selectedSessionSources.length}
+                      </span>
+                    </div>
+                    <div className="modal-stat-card">
+                      <span className="modal-stat-label">{loc.topicsDiscovered}</span>
+                      <span className="modal-stat-val" style={{ color: '#818cf8' }}>
+                        {selectedSessionStats?.topics ?? 0}
+                      </span>
+                    </div>
+                    <div className="modal-stat-card">
+                      <span className="modal-stat-label">{loc.conceptsExtracted}</span>
+                      <span className="modal-stat-val" style={{ color: '#fbbf24' }}>
+                        {selectedSessionStats?.terms ?? 0}
+                      </span>
+                    </div>
+                    <div className="modal-stat-card">
+                      <span className="modal-stat-label">{loc.averageQuality}</span>
+                      <span className="modal-stat-val" style={{ color: '#34d399' }}>
+                        {selectedSessionStats?.avg_quality ? `${Math.round(selectedSessionStats.avg_quality * 100)}%` : '0%'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Sources List Section */}
+                  <div>
+                    <div className="modal-section-title">
+                      <Globe size={18} style={{ color: 'var(--accent-color)' }} />
+                      <span>{loc.allCrawledSources} ({selectedSessionSources.length})</span>
+                    </div>
+
+                    <div className="modal-sources-list">
+                      {selectedSessionSources.length > 0 ? selectedSessionSources.map((source, idx) => (
+                        <div key={source.id || idx} className="modal-source-card">
+                          <div className="modal-source-meta">
+                            <div className="modal-source-pills">
+                              <span className="modal-domain-pill">{source.domain || 'WEB'}</span>
+                              <span className="modal-score-pill">
+                                {Math.round((source.quality_score || 0) * 100)}% {lang === 'ar' ? 'جودة' : 'quality'}
+                              </span>
+                              {source.word_count && source.word_count > 0 && (
+                                <span className="modal-words-pill">
+                                  {source.word_count} {loc.wordsCount}
+                                </span>
+                              )}
+                            </div>
+                            {source.crawled_at && (
+                              <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                                {new Date(source.crawled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                          </div>
+
+                          <h4 className="modal-source-title">
+                            <a href={source.url} target="_blank" rel="noreferrer" title={source.url}>
+                              <span>{source.title || source.url}</span>
+                              <ExternalLink size={14} style={{ opacity: 0.6 }} />
+                            </a>
+                          </h4>
+
+                          {source.summary && (
+                            <div className="modal-source-summary">
+                              <p style={{ margin: 0 }}>{source.summary}</p>
+                            </div>
+                          )}
+                        </div>
+                      )) : (
+                        <div className="modal-empty-sources">
+                          <AlertCircle size={36} style={{ margin: '0 auto 10px auto', opacity: 0.4 }} />
+                          <p>{loc.noSourcesFound}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       </main>
     </div>

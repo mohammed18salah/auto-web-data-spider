@@ -35,16 +35,24 @@ def generate_queries(topic: str) -> list[str]:
     if script == "ar":
         templates = [
             "{topic}",
+            "ما هو {topic}",
+            "شرح {topic}",
+            "دليل {topic}",
+            "{topic} بروتوكول",
+            "أمثلة على {topic}",
             "{topic} ويكيبيديا",
             "معلومات عن {topic}",
-            "{topic} الموقع الرسمي",
         ]
     else:
         templates = [
             "{topic}",
+            "what is {topic}",
+            "how does {topic} work",
+            "{topic} architecture",
+            "{topic} tutorial",
             "{topic} overview",
-            "{topic} wikipedia",
-            "about {topic}",
+            "{topic} protocol",
+            "{topic} specification",
         ]
     
     queries = [t.format(topic=clean_topic) for t in templates]
@@ -73,7 +81,8 @@ def extract_domain(url: str) -> str:
 
 def target_sources(topic: str, queries: list[str], config: Config | None = None) -> list[str]:
     """
-    Execute search queries via resilient HTTP search and collect deduplicated URLs.
+    Execute high-speed search queries via resilient HTTP search and collect deduplicated URLs.
+    Prioritizes the exact topic query to get immediate results without waiting.
 
     Args:
         topic:   The topic being searched.
@@ -81,7 +90,7 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
         config:  Config instance. Defaults to global singleton.
 
     Returns:
-        A list of deduplicated URLs found across all queries.
+        A list of deduplicated URLs found across queries.
     """
     import urllib.parse
     import time
@@ -93,7 +102,7 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
     trusted_only = cfg.crawler.trusted_only
     
     collected_urls: set[str] = set()
-    logger.info(f"Targeting sources for '{topic}' using {len(queries)} queries...")
+    logger.info(f"Rapidly targeting sources for '{topic}'...")
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -101,15 +110,15 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
         "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
     }
 
-    # Execute queries using resilient HTTP endpoints
-    for q in queries:
-        logger.debug(f"Executing web search for query: '{q}'")
+    # Execute queries: exact topic query is first. If it yields sufficient results, return immediately!
+    for i, q in enumerate(queries):
+        logger.debug(f"Executing web search [{i+1}/{len(queries)}] for: '{q}'")
         try:
             r = httpx.post(
                 "https://html.duckduckgo.com/html/",
                 data={"q": q},
                 headers=headers,
-                timeout=10.0,
+                timeout=4.5,
                 follow_redirects=True,
             )
             
@@ -119,7 +128,7 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
                 
                 # Check both direct url elements and result title links
                 for a in soup.select("a.result__url, .result__title a"):
-                    if added_for_q >= max_urls:
+                    if len(collected_urls) >= max_urls:
                         break
                     href = a.get("href", "")
                     actual_url = ""
@@ -145,12 +154,17 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
                     collected_urls.add(actual_url)
                     added_for_q += 1
 
-            # Brief courtesy delay between search queries
+            # If the primary query already found sufficient URLs, launch immediately!
+            if len(collected_urls) >= max_urls or (i == 0 and len(collected_urls) >= 4):
+                logger.info(f"Targeting found {len(collected_urls)} URLs on primary query, proceeding immediately.")
+                break
+
+            # Brief delay only if configured and more queries needed
             if cfg.crawler.crawl_delay_seconds > 0:
                 time.sleep(cfg.crawler.crawl_delay_seconds)
                 
         except Exception as e:
-            logger.warning(f"Search query '{q}' encountered network warning: {e}")
+            logger.warning(f"Search query '{q}' note: {e}")
 
     urls = list(collected_urls)
     logger.info(f"Targeting complete: {len(urls)} unique URLs found for '{topic}'")

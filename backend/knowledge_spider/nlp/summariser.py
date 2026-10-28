@@ -51,7 +51,7 @@ def generate_summary(text: str, config: Config | None = None) -> str:
         return ""
 
     cfg = config or get_config()
-    sentence_count = cfg.nlp.summary_sentence_count
+    sentence_count = getattr(cfg.nlp, "summary_sentences", getattr(cfg.nlp, "summary_sentence_count", 5))
 
     _ensure_nltk_data()
 

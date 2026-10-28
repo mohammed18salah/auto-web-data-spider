@@ -215,8 +215,12 @@ const t = {
 };
 
 function App() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-  const [lang, setLang] = useState<Lang>('ar');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('spider_theme') as 'light' | 'dark') || 'dark';
+  });
+  const [lang, setLang] = useState<Lang>(() => {
+    return (localStorage.getItem('spider_lang') as Lang) || 'en';
+  });
   const [activeTab, setActiveTab] = useState<'log' | 'terminal'>('log');
   const [page, setPage] = useState<Page>('home');
 
@@ -440,7 +444,8 @@ function App() {
       const res = await axios.post(`${API_BASE}/crawl`, {
         topic: searchQuery,
         max_depth: safeDepth,
-        max_sources: safeSources
+        max_sources: safeSources,
+        lang: lang
       });
 
       if (res.data.status === 'started') {
@@ -556,8 +561,20 @@ function App() {
     addLog('success', `${loc.saveSuccess} (${sessionId.slice(0, 8)}...)`);
   };
 
-  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  const toggleLang = () => setLang(prev => prev === 'ar' ? 'en' : 'ar');
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      localStorage.setItem('spider_theme', next);
+      return next;
+    });
+  };
+  const toggleLang = () => {
+    setLang(prev => {
+      const next = prev === 'ar' ? 'en' : 'ar';
+      localStorage.setItem('spider_lang', next);
+      return next;
+    });
+  };
 
   const handleMouseDown = () => {
     isDragging.current = true;
@@ -576,11 +593,29 @@ function App() {
     document.removeEventListener('mouseup', handleMouseUp);
   };
 
+  const translateLog = (msg: string): string => {
+    if (lang !== 'en' || !msg) return msg;
+    if (msg.includes('بدء الزحف الذكي لموضوع:')) return msg.replace('بدء الزحف الذكي لموضوع:', 'Starting autonomous crawl for topic:');
+    if (msg.includes('استهداف موضوع:')) return msg.replace('استهداف موضوع:', 'Targeting topic:').replace('(المستوى', '(Depth').replace(')...', ')...');
+    if (msg.includes('مصادر ويب جاهزة للاستكشاف')) return msg.replace('تم العثور على', 'Found').replace('مصادر ويب جاهزة للاستكشاف.', 'web sources ready for extraction.');
+    if (msg.includes('جاري استعراض وتحميل:') || msg.includes('جاري استعراض وتحليل:')) return msg.replace('جاري استعراض وتحميل:', 'Crawling and extracting:').replace('جاري استعراض وتحليل:', 'Crawling and extracting:');
+    if (msg.includes('تم تحليل وحفظ:')) return msg.replace('تم تحليل وحفظ:', 'Harvested and indexed:').replace('(جودة:', '(Quality:');
+    if (msg.includes('تم الوصول إلى الحد الأقصى للمصادر المحدد')) return msg.replace('تم الوصول إلى الحد الأقصى للمصادر المحدد', 'Reached maximum source target limit').replace('مصادر)', 'sources)');
+    if (msg.includes('تم اكتمال الزحف')) return msg.replace('تم اكتمال الزحف: تم الوصول إلى الحد الأقصى المطلوب للمصادر', 'Crawl complete: Maximum source target reached').replace('مصادر).', 'sources).');
+    if (msg.includes('اكتمل استكشاف شجرة الموضوعات')) return 'Topic tree exploration complete! Harvested all target sources.';
+    if (msg.includes('انتهت الجلسة:')) return msg.replace('انتهت الجلسة:', 'Session concluded:');
+    if (msg.includes('تم استلام أمر إيقاف')) return 'User stop signal received, shutting down crawler...';
+    if (msg.includes('تم إيقاف عملية الزحف')) return 'Crawl process stopped.';
+    if (msg.includes('خطأ أثناء الزحف')) return msg.replace('خطأ أثناء الزحف:', 'Crawler error:');
+    if (msg.includes('لم يتم العثور على روابط ويب')) return msg.replace('لم يتم العثور على روابط ويب إضافية لـ', 'No additional web links discovered for');
+    return msg;
+  };
+
   const renderLogs = () => logs.map((log, idx) => (
     <div key={idx} className={`log-line ${log.type}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <span className="timestamp" dir="ltr">[{log.time}]</span>
       <span className="log-badge">[{log.type.toUpperCase()}]</span>
-      <span className="log-text">{log.message}</span>
+      <span className="log-text">{translateLog(log.message)}</span>
     </div>
   ));
 
@@ -629,11 +664,11 @@ function App() {
 
           <div className="nav-divider"></div>
 
-          <button className="btn-icon" onClick={toggleLang} title="تغيير اللغة / Change Language">
+          <button className="btn-icon" onClick={toggleLang} title={lang === "ar" ? "تغيير اللغة" : "Change Language"}>
             <Languages size={18} />
           </button>
 
-          <button className="btn-icon" onClick={toggleTheme} title="تغيير المظهر / Toggle Theme">
+          <button className="btn-icon" onClick={toggleTheme} title={lang === "ar" ? "تغيير المظهر" : "Toggle Theme"}>
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
         </div>
@@ -719,7 +754,7 @@ function App() {
                       type="button"
                       className={`config-square-btn ${showDepthGuide ? 'active' : ''}`}
                       onClick={() => setShowDepthGuide(!showDepthGuide)}
-                      title={showDepthGuide ? 'إخفاء الدليل' : 'عرض الدليل والتحذيرات'}
+                      title={showDepthGuide ? (lang === "ar" ? "إخفاء الدليل" : "Hide Guide") : (lang === "ar" ? "عرض الدليل والتحذيرات" : "Show Guide and Warnings")}
                     >
                       <HelpCircle size={15} />
                       <span>{loc.detailsAndWarnings}</span>
@@ -800,7 +835,7 @@ function App() {
                       className="config-stepper-btn"
                       onClick={() => setMaxDepth(prev => Math.max(1, prev - 1))}
                       disabled={isRunning || maxDepth <= 1}
-                      title="تقليل العمق (-1)"
+                      title={lang === "ar" ? "تقليل العمق (-1)" : "Decrease Depth (-1)"}
                     >
                       -
                     </button>
@@ -809,7 +844,7 @@ function App() {
                       className="config-stepper-btn"
                       onClick={() => setMaxDepth(prev => Math.min(10, prev + 1))}
                       disabled={isRunning || maxDepth >= 10}
-                      title="زيادة العمق (+1)"
+                      title={lang === "ar" ? "زيادة العمق (+1)" : "Increase Depth (+1)"}
                     >
                       +
                     </button>
@@ -861,7 +896,7 @@ function App() {
                       type="button"
                       className={`config-square-btn ${showSourcesGuide ? 'active' : ''}`}
                       onClick={() => setShowSourcesGuide(!showSourcesGuide)}
-                      title={showSourcesGuide ? 'إخفاء الدليل' : 'عرض الدليل والتحذيرات'}
+                      title={showSourcesGuide ? (lang === "ar" ? "إخفاء الدليل" : "Hide Guide") : (lang === "ar" ? "عرض الدليل والتحذيرات" : "Show Guide and Warnings")}
                     >
                       <HelpCircle size={15} />
                       <span>{loc.detailsAndWarnings}</span>
@@ -937,7 +972,7 @@ function App() {
                       className="config-stepper-btn"
                       onClick={() => setMaxSources(prev => Math.max(1, prev - 5))}
                       disabled={isRunning || maxSources <= 1}
-                      title="تقليل المصادر (-5)"
+                      title={lang === "ar" ? "تقليل المصادر (-5)" : "Decrease Sources (-5)"}
                     >
                       -
                     </button>
@@ -946,7 +981,7 @@ function App() {
                       className="config-stepper-btn"
                       onClick={() => setMaxSources(prev => Math.min(1000, prev + 5))}
                       disabled={isRunning || maxSources >= 1000}
-                      title="زيادة المصادر (+5)"
+                      title={lang === "ar" ? "زيادة المصادر (+5)" : "Increase Sources (+5)"}
                     >
                       +
                     </button>
@@ -1118,7 +1153,7 @@ function App() {
                         </div>
                         {currentScore > 0 && (
                           <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', fontWeight: 700 }}>
-                            جودة المحتوى: {Math.round(currentScore * 100)}%
+                            {lang === "ar" ? "جودة المحتوى:" : "Content Quality:"} {Math.round(currentScore * 100)}%
                           </span>
                         )}
                       </div>
@@ -1150,7 +1185,7 @@ function App() {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: 'var(--text-secondary)' }}>
                       <Globe size={64} className="pulse-animation" style={{ opacity: 0.6, color: 'var(--accent-color)' }} />
                       <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>{loc.browserExploring}</p>
-                      <span style={{ fontSize: '0.85rem', opacity: 0.7 }}>{searchQuery ? `جاري تمشيط محركات البحث عن: ${searchQuery}` : ''}</span>
+                      <span style={{ fontSize: '0.85rem', opacity: 0.7 }}>{searchQuery ? (lang === "ar" ? `جاري تمشيط محركات البحث عن: ${searchQuery}` : `Scouring search engines for: ${searchQuery}`) : ""}</span>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>

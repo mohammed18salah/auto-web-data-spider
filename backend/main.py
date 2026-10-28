@@ -75,17 +75,18 @@ class CrawlRequest(BaseModel):
     topic: str
     max_depth: int = 1
     max_sources: int = 5
+    lang: Optional[str] = "en"
 
 
 class ConfigUpdateRequest(BaseModel):
     settings: Dict[str, Any]
 
 
-def background_crawl_task(session_id: str, cfg):
+def background_crawl_task(session_id: str, cfg, lang: str = "en"):
     """Runs the crawler in the background while registering it for graceful stop control."""
     try:
-        logging.info(f"Starting background crawl for session: {session_id}")
-        orchestrator = CrawlerOrchestrator(session_id, cfg)
+        logging.info(f"Starting background crawl for session: {session_id} (lang={lang})")
+        orchestrator = CrawlerOrchestrator(session_id, cfg, lang=lang)
         with crawler_lock:
             active_crawlers[session_id] = orchestrator
 
@@ -99,7 +100,7 @@ def background_crawl_task(session_id: str, cfg):
             if orch:
                 completed_crawlers[session_id] = {
                     "status": "paused" if orch.is_stopped else "complete",
-                    "stop_reason": orch.stop_reason or ("تم الإيقاف يدوياً" if orch.is_stopped else "اكتمل الزحف بنجاح"),
+                    "stop_reason": orch.stop_reason or ("Stopped manually" if orch.is_stopped else "Crawl complete"),
                     "logs": list(orch.live_logs),
                     "current_url": orch.current_url,
                     "current_title": orch.current_title,
@@ -134,7 +135,7 @@ def start_crawl(req: CrawlRequest, background_tasks: BackgroundTasks):
     session = create_session(req.topic, cfg)
 
     # Start the crawl process in the background
-    background_tasks.add_task(background_crawl_task, session.id, cfg)
+    background_tasks.add_task(background_crawl_task, session.id, cfg, req.lang or "en")
 
     return {
         "status": "started",

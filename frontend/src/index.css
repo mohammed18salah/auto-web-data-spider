@@ -1,4 +1,27 @@
 :root {
+  /* Default Theme: Deep Obsidian Pitch Black (Zero white flash) */
+  --bg-color: #030305;
+  --panel-bg: rgba(12, 12, 15, 0.9);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-border-hover: rgba(255, 255, 255, 0.2);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
+  --danger-color: #ef4444;
+  --danger-hover: #dc2626;
+  --success-color: #10b981;
+  --success-hover: #059669;
+  --shadow-color: rgba(0, 0, 0, 0.85);
+  --glass-blur: blur(20px);
+  --input-bg: rgba(18, 18, 22, 0.95);
+  --card-sub-bg: rgba(20, 20, 24, 0.7);
+  --card-sub-border: rgba(255, 255, 255, 0.07);
+  --bar-bg: rgba(255, 255, 255, 0.04);
+  --nav-bg: rgba(10, 10, 13, 0.95);
+}
+
+[data-theme='light'] {
   /* Light Theme Variables */
   --bg-color: #f1f5f9;
   --panel-bg: rgba(255, 255, 255, 0.8);
@@ -22,7 +45,6 @@
 }
 
 [data-theme='dark'] {
-  /* Dark Theme Variables - Deep Obsidian / True Pitch Black */
   --bg-color: #030305;
   --panel-bg: rgba(12, 12, 15, 0.9);
   --panel-border: rgba(255, 255, 255, 0.08);
@@ -56,7 +78,6 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   overflow: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
   background-attachment: fixed;
 }
 

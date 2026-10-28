@@ -120,18 +120,17 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
   const animFrameId = useRef<number | null>(null);
 
   // Background deep space cosmic stars
-  const starsRef = useRef<{ x: number; y: number; r: number; a: number }[]>([]);
+  const starsPathRef = useRef<Path2D | null>(null);
   useEffect(() => {
-    const list = [];
-    for (let i = 0; i < 150; i++) {
-      list.push({
-        x: (Math.random() - 0.5) * 3000,
-        y: (Math.random() - 0.5) * 2200,
-        r: Math.random() * 1.3 + 0.35,
-        a: Math.random() * 0.45 + 0.15,
-      });
+    const p = new Path2D();
+    for (let i = 0; i < 90; i++) {
+      const x = (Math.random() - 0.5) * 2800;
+      const y = (Math.random() - 0.5) * 2000;
+      const r = Math.random() * 1.1 + 0.35;
+      p.arc(x, y, r, 0, Math.PI * 2);
+      p.closePath();
     }
-    starsRef.current = list;
+    starsPathRef.current = p;
   }, []);
 
   // Fetch all sessions for dropdown selector
@@ -334,13 +333,9 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
       ctx.scale(cam.zoom, cam.zoom);
 
       // Draw subtle background celestial stars
-      if (starsRef.current.length > 0) {
-        starsRef.current.forEach(star => {
-          ctx.beginPath();
-          ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(224, 242, 254, ${star.a})`;
-          ctx.fill();
-        });
+      if (starsPathRef.current) {
+        ctx.fillStyle = 'rgba(224, 242, 254, 0.35)';
+        ctx.fill(starsPathRef.current);
       }
 
       // Run 1 physics tick per frame

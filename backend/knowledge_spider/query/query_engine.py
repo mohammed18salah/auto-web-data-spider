@@ -89,22 +89,56 @@ def extract_domain(url: str) -> str:
         return ""
 
 
-def _query_wikipedia_api(query: str, lang: str = "ar") -> list[str]:
-    """Query Wikipedia OpenSearch API for direct verified encyclopedic links."""
-    urls = []
+def _query_wikipedia_api(query: str, lang: str = "en") -> list[dict]:
+    """Query Wikipedia Full-Text Search API for verified encyclopedic articles."""
+    results = []
     try:
         endpoint = f"https://{lang}.wikipedia.org/w/api.php"
-        headers = {"User-Agent": "KnowledgeSpider/2.0 (research crawler; contact@spider.org)"}
-        params = {"action": "opensearch", "format": "json", "limit": "5", "search": query}
-        with httpx.Client(timeout=4.0) as client:
+        headers = {"User-Agent": "DataSpiderBot/2.0 (Autonomous Web Harvester; contact@dataspider.dev)"}
+        params = {
+            "action": "query",
+            "list": "search",
+            "srsearch": query,
+            "format": "json",
+            "srlimit": "8",
+        }
+        with httpx.Client(timeout=3.5) as client:
             resp = client.get(endpoint, params=params, headers=headers)
             if resp.status_code == 200:
                 data = resp.json()
-                if len(data) >= 4 and isinstance(data[3], list):
-                    urls.extend(data[3])
+                for item in data.get("query", {}).get("search", []):
+                    title = item.get("title")
+                    if title:
+                        slug = title.replace(" ", "_")
+                        url = f"https://{lang}.wikipedia.org/wiki/{slug}"
+                        raw_snip = item.get("snippet", "")
+                        snippet = BeautifulSoup(raw_snip, "html.parser").get_text() if raw_snip else title
+                        results.append({"url": url, "title": title, "snippet": snippet})
     except Exception as e:
-        logger.debug(f"Wikipedia API lookup note: {e}")
-    return urls
+        logger.debug(f"Wikipedia search API note ({lang}): {e}")
+    return results
+
+
+def _query_openalex_api(query: str) -> list[dict]:
+    """Query OpenAlex API for open scholarly articles and peer-reviewed works."""
+    results = []
+    try:
+        endpoint = "https://api.openalex.org/works"
+        headers = {"User-Agent": "DataSpiderBot/2.0 (mailto:contact@dataspider.dev)"}
+        params = {"search": query, "per-page": "6"}
+        with httpx.Client(timeout=3.5) as client:
+            resp = client.get(endpoint, params=params, headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                for item in data.get("results", []):
+                    title = item.get("title")
+                    doi = item.get("doi")
+                    landing_page = (item.get("primary_location") or {}).get("landing_page_url") or doi
+                    if landing_page and title:
+                        results.append({"url": landing_page, "title": title, "snippet": title})
+    except Exception as e:
+        logger.debug(f"OpenAlex lookup note: {e}")
+    return results
 
 
 def _query_crossref_api(query: str) -> list[str]:
@@ -114,7 +148,7 @@ def _query_crossref_api(query: str) -> list[str]:
         endpoint = "https://api.crossref.org/works"
         headers = {"User-Agent": "KnowledgeSpider/2.0 (Academic researcher; mailto:contact@spider.org)"}
         params = {"rows": "6", "query": query}
-        with httpx.Client(timeout=4.5) as client:
+        with httpx.Client(timeout=3.5) as client:
             resp = client.get(endpoint, params=params, headers=headers)
             if resp.status_code == 200:
                 data = resp.json()
@@ -168,73 +202,81 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
 
     logger.info(f"Rapidly targeting high-precision sources for '{topic}'...")
 
-    # Channel 1: Wikipedia Verified Entity Search
-    wiki_urls = _query_wikipedia_api(topic, lang="ar")
-    if not wiki_urls:
-        wiki_urls = _query_wikipedia_api(topic, lang="en")
-    for w_url in wiki_urls:
-        add_candidate(w_url, title=topic)
+    # Determine language script
+    is_ar = detect_script(topic) == "ar"
+    wiki_langs = ["ar", "en"] if is_ar else ["en", "ar"]
 
-    # Channel 2: Academic & Research Repositories (if topic involves university/research/faculty)
-    is_academic = any(k in topic for k in ["دكتور", "جامعة", "كلية", "أبحاث", "استاذ", "University", "Dr."])
-    if is_academic:
-        crossref_urls = _query_crossref_api(topic)
-        for cr_url in crossref_urls:
-            add_candidate(cr_url, title=topic)
-
-    # Channel 3: Resilient Web Search (DuckDuckGo HTML + Lite)
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
-    }
-
-    for i, q in enumerate(queries):
+    # Channel 1: Wikipedia Verified Entity Search (Full-Text Search API)
+    for l_code in wiki_langs:
+        wiki_results = _query_wikipedia_api(topic, lang=l_code)
+        for w_item in wiki_results:
+            add_candidate(w_item["url"], title=w_item["title"], snippet=w_item["snippet"])
         if len(collected_urls) >= max_urls:
             break
 
-        logger.debug(f"Executing web search [{i+1}/{len(queries)}] for: '{q}'")
-        try:
-            with httpx.Client(timeout=4.5, follow_redirects=True, headers=headers) as client:
-                resp = None
-                try:
-                    resp = client.post("https://html.duckduckgo.com/html/", data={"q": q})
-                except Exception:
-                    # Fallback to lite endpoint
+    # Channel 2: Academic & Open Scientific Repositories (OpenAlex & CrossRef)
+    if len(collected_urls) < max_urls:
+        openalex_items = _query_openalex_api(topic)
+        for it in openalex_items:
+            add_candidate(it["url"], title=it["title"], snippet=it["snippet"])
+
+    is_academic = any(k in topic for k in ["دكتور", "جامعة", "كلية", "أبحاث", "استاذ", "University", "Dr.", "Paper", "Quantum", "Research"])
+    if is_academic and len(collected_urls) < max_urls:
+        crossref_urls = _query_crossref_api(topic)
+        for cr_url in crossref_urls:
+            add_candidate(cr_url, title=topic, snippet=topic)
+
+    # Channel 3: Resilient Web Search (DuckDuckGo HTML with short timeout)
+    if len(collected_urls) < max_urls:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
+        }
+
+        for i, q in enumerate(queries):
+            if len(collected_urls) >= max_urls:
+                break
+
+            logger.debug(f"Executing web search [{i+1}/{len(queries)}] for: '{q}'")
+            try:
+                with httpx.Client(timeout=2.0, follow_redirects=True, headers=headers) as client:
+                    resp = None
                     try:
-                        resp = client.post("https://lite.duckduckgo.com/lite/", data={"q": q})
+                        resp = client.post("https://html.duckduckgo.com/html/", data={"q": q})
                     except Exception:
                         pass
 
-                if resp and resp.status_code == 200 and resp.text:
-                    soup = BeautifulSoup(resp.text, "html.parser")
-                    for res_elem in soup.select(".result, tr"):
-                        if len(collected_urls) >= max_urls:
-                            break
-                        link_tag = res_elem.select_one(".result__title a, a.result-link, .result__url")
-                        snip_tag = res_elem.select_one(".result__snippet, .result-snippet")
-                        if not link_tag:
-                            continue
-
-                        href = link_tag.get("href", "")
-                        actual_url = ""
-                        if "/l/?uddg=" in href:
-                            try:
-                                actual_url = unquote(href.split("/l/?uddg=")[1].split("&")[0])
-                            except Exception:
+                    if resp and resp.status_code == 200 and resp.text:
+                        soup = BeautifulSoup(resp.text, "html.parser")
+                        for res_elem in soup.select(".result, tr"):
+                            if len(collected_urls) >= max_urls:
+                                break
+                            link_tag = res_elem.select_one(".result__title a, a.result-link, .result__url")
+                            snip_tag = res_elem.select_one(".result__snippet, .result-snippet")
+                            if not link_tag:
                                 continue
-                        elif href.startswith("http") and "duckduckgo.com" not in href:
-                            actual_url = href
 
-                        title_text = link_tag.get_text(strip=True)
-                        snip_text = snip_tag.get_text(strip=True) if snip_tag else ""
-                        add_candidate(actual_url, title=title_text, snippet=snip_text)
+                            href = link_tag.get("href", "")
+                            actual_url = ""
+                            if "/l/?uddg=" in href:
+                                try:
+                                    actual_url = unquote(href.split("/l/?uddg=")[1].split("&")[0])
+                                except Exception:
+                                    continue
+                            elif href.startswith("http") and "duckduckgo.com" not in href:
+                                actual_url = href
 
-        except Exception as e:
-            logger.warning(f"Web search query '{q}' note: {e}")
+                            if actual_url:
+                                title_text = link_tag.get_text(strip=True)
+                                snip_text = snip_tag.get_text(strip=True) if snip_tag else ""
+                                add_candidate(actual_url, title=title_text, snippet=snip_text)
 
-        if len(collected_urls) >= max_urls or (i == 0 and len(collected_urls) >= 5):
-            break
+            except Exception as e:
+                logger.warning(f"Web search query '{q}' note: {e}")
+
+            if len(collected_urls) >= max_urls:
+                break
 
     logger.info(f"Targeting complete: {len(collected_urls)} verified relevant URLs found for '{topic}'")
     return collected_urls

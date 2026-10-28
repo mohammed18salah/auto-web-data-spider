@@ -19,7 +19,7 @@ import toml
 from knowledge_spider.utils.logger import logger
 
 # ── Default config path ───────────────────────────────────────────────────────
-_DEFAULT_CONFIG_PATH: Path = Path("./config.toml")
+_DEFAULT_CONFIG_PATH: Path = Path(__file__).resolve().parent.parent.parent / "config.toml"
 _config_singleton: Optional["Config"] = None
 
 

@@ -11,7 +11,7 @@ from loguru import logger as _logger
 
 
 # ── Constants ────────────────────────────────────────────────────────────────
-LOG_DIR: Path = Path("./logs")
+LOG_DIR: Path = Path(__file__).resolve().parent.parent.parent / "logs"
 LOG_FILE: Path = LOG_DIR / "knowledge_spider.log"
 LOG_ROTATION: str = "10 MB"
 LOG_RETENTION: str = "7 days"

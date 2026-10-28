@@ -28,7 +28,7 @@ class DataExporter:
     def __init__(self, session_id: str):
         self.session_id = session_id
         self.cfg = get_config()
-        self.output_dir = Path(self.cfg.export.output_dir)
+        self.output_dir = Path(__file__).resolve().parent.parent.parent / self.cfg.export.output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def _gather_payload(self) -> dict:

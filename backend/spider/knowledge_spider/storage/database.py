@@ -26,7 +26,7 @@ from knowledge_spider.utils.logger import logger
 
 # ── Engine ────────────────────────────────────────────────────────────────────
 
-_DB_PATH: Path = Path("./knowledge_spider.db")
+_DB_PATH: Path = Path(__file__).resolve().parent.parent.parent / "knowledge_spider.db"
 _engine = None  # lazy singleton
 
 

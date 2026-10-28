@@ -3,7 +3,8 @@ import {
   Sun, Moon, Settings, Database, Clock, 
   Play, Square, Save, Download, Globe, 
   Terminal, Activity, RefreshCw, Home, Languages, Trash2,
-  Eye, X, ExternalLink, AlertCircle, Info, AlertTriangle, Layers, Hash
+  Eye, X, ExternalLink, AlertCircle, Info, AlertTriangle, Layers, Hash,
+  HelpCircle, CheckCircle2
 } from 'lucide-react';
 import axios from 'axios';
 import './index.css';
@@ -51,7 +52,7 @@ const t = {
     systemStatus: 'حالة النظام',
     statusRunning: 'قيد العمل...',
     statusStopped: 'متوقف',
-    statusCompleted: 'اكتملت المهمة ✅',
+    statusCompleted: 'اكتملت المهمة',
     statusIdle: 'جاهز للبدء',
     stopReasonLabel: 'سبب الانتهاء / التوقف:',
     sourcesAnalyzed: 'المصادر المحللة',
@@ -136,7 +137,7 @@ const t = {
     systemStatus: 'System Status',
     statusRunning: 'Running...',
     statusStopped: 'Stopped',
-    statusCompleted: 'Completed ✅',
+    statusCompleted: 'Completed',
     statusIdle: 'Ready to Start',
     stopReasonLabel: 'Stop / Completion Reason:',
     sourcesAnalyzed: 'Sources Analyzed',
@@ -271,6 +272,8 @@ function App() {
   const [historyList, setHistoryList] = useState<SessionHistoryItem[]>([]);
   const [stopReason, setStopReason] = useState<string>('');
   const [crawlFinished, setCrawlFinished] = useState<boolean>(false);
+  const [showDepthGuide, setShowDepthGuide] = useState<boolean>(false);
+  const [showSourcesGuide, setShowSourcesGuide] = useState<boolean>(false);
 
   // Detailed view & export modal state
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -350,7 +353,7 @@ function App() {
               setStopReason(reason);
               setCrawlFinished(isComp);
               setLogs(prev => {
-                const finishMsg = `🏁 ${loc.stopReasonLabel} ${reason}`;
+                const finishMsg = `${loc.stopReasonLabel} ${reason}`;
                 if (prev.some(l => l.message.includes(loc.stopReasonLabel) || l.message === finishMsg)) return prev;
                 return [...prev, { time: new Date().toLocaleTimeString(), type: isComp ? 'success' : 'info', message: finishMsg }];
               });
@@ -375,7 +378,6 @@ function App() {
         label: lang === 'ar' ? `قيد الزحف والتحليل (${stats.sources} / ${maxSources})` : `Crawling & Mining (${stats.sources} / ${maxSources})`,
         subtext: lang === 'ar' ? 'جاري استكشاف وفهرسة صفحات الويب بنشاط...' : 'Actively discovering and indexing web pages...',
         badgeClass: 'running',
-        icon: '⚡',
         progress: maxSources > 0 ? Math.min(100, Math.round((stats.sources / maxSources) * 100)) : 0
       };
     }
@@ -384,7 +386,6 @@ function App() {
         label: loc.statusCompleted,
         subtext: lang === 'ar' ? `تم جمع وتحليل كافة المصادر المستهدفة بنجاح (${stats.sources} مصادر).` : `All target sources analyzed successfully (${stats.sources} sources).`,
         badgeClass: 'complete',
-        icon: '✅',
         progress: 100
       };
     }
@@ -393,7 +394,6 @@ function App() {
         label: loc.statusStopped,
         subtext: stopReason || (lang === 'ar' ? 'تم إيقاف الجلسة مؤقتاً.' : 'Session stopped.'),
         badgeClass: 'paused',
-        icon: '⏸️',
         progress: maxSources > 0 ? Math.min(100, Math.round((stats.sources / maxSources) * 100)) : 0
       };
     }
@@ -401,7 +401,6 @@ function App() {
       label: loc.statusIdle,
       subtext: lang === 'ar' ? 'أدخل موضوع البحث في الأعلى واضغط البدء' : 'Enter a search topic above and click Start',
       badgeClass: 'idle',
-      icon: '⚪',
       progress: 0
     };
   };
@@ -457,7 +456,7 @@ function App() {
       const userReason = lang === 'ar' ? 'تم إيقاف عملية الزحف يدوياً بواسطة المستخدم.' : 'Crawl stopped manually by user.';
       setStopReason(userReason);
       setCrawlFinished(false);
-      addLog('info', `⏸️ ${userReason}`);
+      addLog('info', userReason);
     }
   };
 
@@ -647,7 +646,10 @@ function App() {
                         <span className="stat-label">{loc.systemStatus}</span>
                         <span className={`live-status-pill ${sysStatus.badgeClass}`}>
                           {sysStatus.badgeClass === 'running' && <span className="pulse-dot-live"></span>}
-                          {sysStatus.icon} {sysStatus.label}
+                          {sysStatus.badgeClass === 'complete' && <CheckCircle2 size={13} style={{ color: '#10b981' }} />}
+                          {sysStatus.badgeClass === 'paused' && <Square size={11} style={{ color: '#f59e0b' }} />}
+                          {sysStatus.badgeClass === 'idle' && <Clock size={12} style={{ color: '#94a3b8' }} />}
+                          <span>{sysStatus.label}</span>
                         </span>
                       </div>
                       
@@ -716,41 +718,66 @@ function App() {
                       <span className="config-title-text">{loc.searchDepth}</span>
                     </div>
 
-                    {/* Interactive Rich Tooltip on Hover */}
-                    <div className="info-trigger-wrapper">
-                      <span className="info-badge-btn" title="ضع الماوس لعرض الفائدة وتحذيرات الأرقام الضخمة">
-                        <Info size={13} /> {loc.detailsAndWarnings}
-                      </span>
-                      <div className="info-popover-card">
-                        <div className="popover-header">
+                    {/* Square button to toggle guide */}
+                    <button
+                      type="button"
+                      className={`config-square-btn ${showDepthGuide ? 'active' : ''}`}
+                      onClick={() => setShowDepthGuide(!showDepthGuide)}
+                      title={showDepthGuide ? 'إخفاء الدليل' : 'عرض الدليل والتحذيرات'}
+                    >
+                      <HelpCircle size={15} />
+                      <span>{loc.detailsAndWarnings}</span>
+                    </button>
+                  </div>
+
+                  {/* INLINE GUIDE CARD - 100% PROPER DISPLAY WITHOUT CUTOFF OR EMOJIS */}
+                  {showDepthGuide && (
+                    <div className="config-guide-card">
+                      <div className="guide-card-header">
+                        <div className="guide-card-title">
                           <Layers size={16} />
                           <span>{loc.depthHoverTitle}</span>
                         </div>
-                        
-                        <div className="popover-section">
-                          <div className="popover-section-title">💡 {lang === 'ar' ? 'الفائدة والأهمية:' : 'Purpose:'}</div>
-                          <p className="popover-text">{loc.depthBenefit}</p>
-                          <ul className="popover-list">
-                            <li>{loc.depthL1}</li>
-                            <li>{loc.depthL2}</li>
-                            <li>{loc.depthL3}</li>
-                          </ul>
-                        </div>
+                        <button 
+                          type="button" 
+                          className="guide-close-btn"
+                          onClick={() => setShowDepthGuide(false)}
+                          title="إغلاق"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
 
-                        <div className="popover-section">
-                          <div className="popover-section-title" style={{ color: '#10b981' }}>🎯 {loc.recommendedValue}:</div>
-                          <p className="popover-text" style={{ color: '#34d399', fontWeight: 600 }}>{loc.depthRecommendedDesc}</p>
+                      <div className="guide-section">
+                        <div className="guide-section-title">
+                          <Info size={14} style={{ color: 'var(--accent-color)' }} />
+                          <span>{lang === 'ar' ? 'الفائدة والأهمية:' : 'Purpose:'}</span>
                         </div>
+                        <p className="guide-text">{loc.depthBenefit}</p>
+                        <ul className="guide-list">
+                          <li>{loc.depthL1}</li>
+                          <li>{loc.depthL2}</li>
+                          <li>{loc.depthL3}</li>
+                        </ul>
+                      </div>
 
-                        <div className="popover-warn-box">
-                          <div style={{ fontWeight: 800, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <AlertTriangle size={14} /> {loc.whatIfHugeNumber}
-                          </div>
-                          <div>{loc.depthHugeWarnDesc}</div>
+                      <div className="guide-section">
+                        <div className="guide-section-title" style={{ color: '#10b981' }}>
+                          <CheckCircle2 size={14} style={{ color: '#10b981' }} />
+                          <span>{loc.recommendedValue}:</span>
                         </div>
+                        <p className="guide-text" style={{ color: '#34d399', fontWeight: 600 }}>{loc.depthRecommendedDesc}</p>
+                      </div>
+
+                      <div className="guide-warn-box">
+                        <div className="guide-warn-title">
+                          <AlertTriangle size={14} style={{ color: '#f59e0b' }} />
+                          <span>{loc.whatIfHugeNumber}</span>
+                        </div>
+                        <div className="guide-warn-text">{loc.depthHugeWarnDesc}</div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Typable number input + Stepper controls */}
                   <div className="config-input-row">
@@ -835,36 +862,61 @@ function App() {
                       <span className="config-title-text">{loc.maxSources}</span>
                     </div>
 
-                    {/* Interactive Rich Tooltip on Hover */}
-                    <div className="info-trigger-wrapper">
-                      <span className="info-badge-btn" title="ضع الماوس لعرض الفائدة وتحذيرات الأرقام الضخمة">
-                        <Info size={13} /> {loc.detailsAndWarnings}
-                      </span>
-                      <div className="info-popover-card">
-                        <div className="popover-header">
+                    {/* Square button to toggle guide */}
+                    <button
+                      type="button"
+                      className={`config-square-btn ${showSourcesGuide ? 'active' : ''}`}
+                      onClick={() => setShowSourcesGuide(!showSourcesGuide)}
+                      title={showSourcesGuide ? 'إخفاء الدليل' : 'عرض الدليل والتحذيرات'}
+                    >
+                      <HelpCircle size={15} />
+                      <span>{loc.detailsAndWarnings}</span>
+                    </button>
+                  </div>
+
+                  {/* INLINE GUIDE CARD - 100% PROPER DISPLAY WITHOUT CUTOFF OR EMOJIS */}
+                  {showSourcesGuide && (
+                    <div className="config-guide-card">
+                      <div className="guide-card-header">
+                        <div className="guide-card-title">
                           <Hash size={16} />
                           <span>{loc.sourcesHoverTitle}</span>
                         </div>
-                        
-                        <div className="popover-section">
-                          <div className="popover-section-title">💡 {lang === 'ar' ? 'الفائدة والأهمية:' : 'Purpose:'}</div>
-                          <p className="popover-text">{loc.sourcesBenefit}</p>
-                        </div>
+                        <button 
+                          type="button" 
+                          className="guide-close-btn"
+                          onClick={() => setShowSourcesGuide(false)}
+                          title="إغلاق"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
 
-                        <div className="popover-section">
-                          <div className="popover-section-title" style={{ color: '#10b981' }}>🎯 {loc.recommendedValue}:</div>
-                          <p className="popover-text" style={{ color: '#34d399', fontWeight: 600 }}>{loc.sourcesRecommendedDesc}</p>
+                      <div className="guide-section">
+                        <div className="guide-section-title">
+                          <Info size={14} style={{ color: 'var(--accent-color)' }} />
+                          <span>{lang === 'ar' ? 'الفائدة والأهمية:' : 'Purpose:'}</span>
                         </div>
+                        <p className="guide-text">{loc.sourcesBenefit}</p>
+                      </div>
 
-                        <div className="popover-warn-box">
-                          <div style={{ fontWeight: 800, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <AlertTriangle size={14} /> {loc.whatIfHugeNumber}
-                          </div>
-                          <div>{loc.sourcesHugeWarnDesc}</div>
+                      <div className="guide-section">
+                        <div className="guide-section-title" style={{ color: '#10b981' }}>
+                          <CheckCircle2 size={14} style={{ color: '#10b981' }} />
+                          <span>{loc.recommendedValue}:</span>
                         </div>
+                        <p className="guide-text" style={{ color: '#34d399', fontWeight: 600 }}>{loc.sourcesRecommendedDesc}</p>
+                      </div>
+
+                      <div className="guide-warn-box">
+                        <div className="guide-warn-title">
+                          <AlertTriangle size={14} style={{ color: '#f59e0b' }} />
+                          <span>{loc.whatIfHugeNumber}</span>
+                        </div>
+                        <div className="guide-warn-text">{loc.sourcesHugeWarnDesc}</div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Typable number input + Stepper controls */}
                   <div className="config-input-row">
@@ -1006,12 +1058,14 @@ function App() {
                       fontSize: '0.9rem',
                       boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                     }}>
-                      <span style={{ fontSize: '1.4rem' }}>{crawlFinished ? '🎯' : '🛑'}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '8px', background: crawlFinished ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)', flexShrink: 0 }}>
+                        {crawlFinished ? <CheckCircle2 size={20} style={{ color: '#10b981' }} /> : <AlertCircle size={20} style={{ color: '#ef4444' }} />}
+                      </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>
                           {crawlFinished 
-                            ? (lang === 'ar' ? 'اكتملت مهمة الزحف بنجاح ✅' : 'Crawl Completed Successfully ✅') 
-                            : (lang === 'ar' ? 'توقفت عملية الزحف 🛑' : 'Crawl Stopped 🛑')}
+                            ? (lang === 'ar' ? 'اكتملت مهمة الزحف بنجاح' : 'Crawl Completed Successfully') 
+                            : (lang === 'ar' ? 'توقفت عملية الزحف' : 'Crawl Stopped')}
                         </span>
                         <span style={{ fontSize: '0.85rem', opacity: 0.95, color: crawlFinished ? '#a7f3d0' : '#fca5a5' }}>
                           {stopReason}

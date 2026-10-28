@@ -256,13 +256,13 @@ class CrawlerOrchestrator:
                 if self.sources_collected >= self.cfg.crawler.max_sources:
                     self.stop_reason = f"تم الوصول إلى الحد الأقصى للمصادر المحدد ({self.cfg.crawler.max_sources} مصادر)"
                     logger.info(f"Reached max sources limit ({self.cfg.crawler.max_sources}). Stopping.")
-                    self.add_log("success", f"🎯 تم اكتمال الزحف: تم الوصول إلى الحد الأقصى المطلوب للمصادر ({self.cfg.crawler.max_sources} مصادر).")
+                    self.add_log("success", f"تم اكتمال الزحف: تم الوصول إلى الحد الأقصى المطلوب للمصادر ({self.cfg.crawler.max_sources} مصادر).")
                     break
 
                 if self._is_time_up():
                     self.stop_reason = f"تم انتهاء المهلة الزمنية المحددة للزحف ({self.cfg.crawler.time_limit_minutes} دقيقة)"
                     logger.info(f"Reached time limit ({self.cfg.crawler.time_limit_minutes}m). Stopping.")
-                    self.add_log("info", f"⏱️ تم إنهاء الزحف: انتهت المهلة الزمنية المحددة ({self.cfg.crawler.time_limit_minutes} دقيقة).")
+                    self.add_log("info", f"تم إنهاء الزحف: انتهت المهلة الزمنية المحددة ({self.cfg.crawler.time_limit_minutes} دقيقة).")
                     break
 
                 # Pop queue
@@ -270,7 +270,7 @@ class CrawlerOrchestrator:
                 if not topic:
                     self.stop_reason = f"اكتمل استكشاف جميع الموضوعات والروابط المستهدفة ({self.sources_collected} مصادر)"
                     logger.info("Topic queue is exhausted or max depth reached. Stopping.")
-                    self.add_log("success", f"✅ اكتمل استكشاف شجرة الموضوعات بالكامل! تم جمع وفهرسة {self.sources_collected} مصادر.")
+                    self.add_log("success", f"اكتمل استكشاف شجرة الموضوعات بالكامل! تم جمع وفهرسة {self.sources_collected} مصادر.")
                     break
 
                 logger.info(f"Processing Topic: '{topic.name}' (Depth {topic.depth})")
@@ -297,11 +297,11 @@ class CrawlerOrchestrator:
                         break
                     if self.sources_collected >= self.cfg.crawler.max_sources:
                         self.stop_reason = f"تم الوصول إلى الحد الأقصى للمصادر المحدد ({self.cfg.crawler.max_sources} مصادر)"
-                        self.add_log("success", f"🎯 تم اكتمال الزحف: تم الوصول إلى الحد الأقصى المطلوب ({self.cfg.crawler.max_sources} مصادر).")
+                        self.add_log("success", f"تم اكتمال الزحف: تم الوصول إلى الحد الأقصى المطلوب ({self.cfg.crawler.max_sources} مصادر).")
                         break
                     if self._is_time_up():
                         self.stop_reason = f"تم انتهاء المهلة الزمنية المحددة للزحف ({self.cfg.crawler.time_limit_minutes} دقيقة)"
-                        self.add_log("info", f"⏱️ تم إنهاء الزحف: انتهت المهلة الزمنية المحددة ({self.cfg.crawler.time_limit_minutes} دقيقة).")
+                        self.add_log("info", f"تم إنهاء الزحف: انتهت المهلة الزمنية المحددة ({self.cfg.crawler.time_limit_minutes} دقيقة).")
                         break
                     
                     self._process_url(url, topic)
@@ -329,6 +329,6 @@ class CrawlerOrchestrator:
                 mark_session_complete(self.session_id)
                 if not self.stop_reason:
                     self.stop_reason = f"اكتملت الجلسة بنجاح مع جمع {self.sources_collected} مصادر"
-                self.add_log("success", f"🏁 انتهت الجلسة: {self.stop_reason}")
+                self.add_log("success", f"انتهت الجلسة: {self.stop_reason}")
 
         logger.info(f"Orchestrator finished. Collected {self.sources_collected} sources. Reason: {self.stop_reason}")

@@ -1236,6 +1236,158 @@ body {
   color: #60a5fa;
 }
 
+/* Square, modern info toggle button */
+.config-square-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--card-sub-bg);
+  border: 1px solid var(--card-sub-border);
+  color: var(--text-secondary);
+  font-size: 0.77rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.config-square-btn:hover {
+  background: rgba(37, 99, 235, 0.12);
+  color: #60a5fa;
+  border-color: rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
+}
+
+.config-square-btn.active {
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.25);
+}
+
+/* Inline Collapsible Guide Card - 100% visible, no clipping */
+.config-guide-card {
+  margin-top: 4px;
+  background: var(--card-sub-bg);
+  border: 1px solid var(--card-sub-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.2s ease;
+  width: 100%;
+}
+
+.guide-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--card-sub-border);
+  padding-bottom: 8px;
+}
+
+.guide-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 0.86rem;
+  color: var(--accent-color);
+}
+
+.guide-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.guide-close-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.guide-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guide-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.guide-text {
+  font-size: 0.77rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.guide-list {
+  padding-right: 18px;
+  margin: 2px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+[dir="ltr"] .guide-list {
+  padding-right: 0;
+  padding-left: 18px;
+}
+
+.guide-warn-box {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.76rem;
+  color: #f59e0b;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.guide-warn-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+[data-theme='light'] .guide-warn-title {
+  color: #b45309;
+}
+
+[data-theme='light'] .guide-warn-box {
+  background: rgba(245, 158, 11, 0.12);
+  color: #92400e;
+}
+
 /* Tooltip & Popover */
 .info-trigger-wrapper {
   position: relative;

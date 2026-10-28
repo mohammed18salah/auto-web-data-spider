@@ -3,7 +3,7 @@ import {
   Sun, Moon, Settings, Database, Clock, 
   Play, Square, Save, Download, Globe, 
   Terminal, Activity, RefreshCw, Home, Languages, Trash2,
-  Eye, X, ExternalLink, AlertCircle
+  Eye, X, ExternalLink, AlertCircle, Info, AlertTriangle, Layers, Hash
 } from 'lucide-react';
 import axios from 'axios';
 import './index.css';
@@ -52,11 +52,32 @@ const t = {
     statusRunning: 'قيد العمل...',
     statusStopped: 'متوقف',
     statusCompleted: 'اكتملت المهمة ✅',
+    statusIdle: 'جاهز للبدء',
     stopReasonLabel: 'سبب الانتهاء / التوقف:',
     sourcesAnalyzed: 'المصادر المحللة',
+    sourcesTarget: 'المصادر المحللة والهدف',
     settingsAndNumbers: 'هنا الإعدادات والأرقام',
-    searchDepth: 'عمق البحث',
-    maxSources: 'الحد الأقصى للمصادر',
+    searchDepth: 'عمق البحث (Search Depth)',
+    maxSources: 'الحد الأقصى للمصادر (Max Sources)',
+    depthPlaceholder: 'مثال: 3',
+    sourcesPlaceholder: 'مثال: 15',
+    presets: 'خيارات سريعة:',
+    recommendedValue: 'القيمة المثالية الموصى بها',
+    whatIfHugeNumber: 'ماذا لو وضعت رقماً ضخماً؟',
+    detailsAndWarnings: 'تفاصيل وتحذيرات',
+    depthHoverTitle: 'دليل عمق البحث (Search Depth)',
+    depthBenefit: 'يحدد مستويات تشعب الروابط واستكشاف صفحات الويب انطلاقاً من نتائج البحث الأولى:',
+    depthL1: 'المستوى 1: صفحات نتائج البحث المباشرة عن الموضوع.',
+    depthL2: 'المستوى 2: الروابط والصفحات الموجودة داخل النتائج الأولى.',
+    depthL3: 'المستوى 3+: روابط متفرعة شجرياً لأعماق أكبر داخل المواقع.',
+    depthRecommendedDesc: 'من 1 إلى 3: يوفر توازناً مثالياً بين سرعة الجمع ودقة المعلومات دون تشتت.',
+    depthHugeWarnDesc: 'وضع رقم ضخم (4 أو 5+): سيتضاعف عدد الروابط بشكل أسي لمئات الآلاف، مما يجعل الزحف بطيئاً جداً (قد يستغرق ساعات)، وقد يبتعد المحتوى عن صلب الموضوع الرئيسي ويستهلك الذاكرة.',
+    depthLiveWarn: 'تنبيه: عمق كبير (4+) قد يستغرق وقتاً طويلاً ويشتت النتائج عن صلب الموضوع.',
+    sourcesHoverTitle: 'دليل الحد الأقصى للمصادر (Max Sources)',
+    sourcesBenefit: 'السقف الإجمالي لعدد المواقع والمقالات التي يحللها الروبوت ويستخرج خلاصاتها قبل التوقف تلقائياً.',
+    sourcesRecommendedDesc: 'من 10 إلى 30 للاستعلام السريع، وحتى 50 للأبحاث الشاملة.',
+    sourcesHugeWarnDesc: 'وضع رقم ضخم (أكثر من 50 أو 100+): ستستمر الجلسة لوقت أطول، وسيتم استهلاك حجم أكبر من الإنترنت والذاكرة، وقد تتعرض بعض الاستعلامات لحظر مؤقت (Rate Limit) من بعض محركات البحث.',
+    sourcesLiveWarn: 'تنبيه: أكثر من 50 مصدراً قد يستهلك وقتاً وباندويث عالي ويزيد احتمالية تقييد الطلبات.',
     start: 'البدء',
     stop: 'إيقاف العمل',
     save: 'الحفظ',
@@ -116,11 +137,32 @@ const t = {
     statusRunning: 'Running...',
     statusStopped: 'Stopped',
     statusCompleted: 'Completed ✅',
+    statusIdle: 'Ready to Start',
     stopReasonLabel: 'Stop / Completion Reason:',
     sourcesAnalyzed: 'Sources Analyzed',
+    sourcesTarget: 'Analyzed Sources & Target',
     settingsAndNumbers: 'Settings & Parameters',
     searchDepth: 'Search Depth',
     maxSources: 'Max Sources',
+    depthPlaceholder: 'e.g. 3',
+    sourcesPlaceholder: 'e.g. 15',
+    presets: 'Quick Presets:',
+    recommendedValue: 'Recommended Value',
+    whatIfHugeNumber: 'What happens if you enter a huge number?',
+    detailsAndWarnings: 'Details & Warnings',
+    depthHoverTitle: 'Search Depth Guide',
+    depthBenefit: 'Determines the branching levels of links to explore starting from primary search results:',
+    depthL1: 'Level 1: Direct primary search result pages.',
+    depthL2: 'Level 2: Links found within primary pages.',
+    depthL3: 'Level 3+: Deeper nested links explored recursively.',
+    depthRecommendedDesc: '1 to 3: Best balance between lightning crawl speed and high precision.',
+    depthHugeWarnDesc: 'Setting a huge number (4 or 5+): Exponential link growth into hundreds of thousands of pages, causing massive slowdown, topic drift away from core subject, and heavy memory usage.',
+    depthLiveWarn: 'Warning: Deep depth (4+) can cause extreme slowdown and topic drift.',
+    sourcesHoverTitle: 'Max Sources Guide',
+    sourcesBenefit: 'The ceiling of web pages and articles the bot reads, analyzes, and indexes before stopping automatically.',
+    sourcesRecommendedDesc: '10 to 30 for quick insight, up to 50 for in-depth research.',
+    sourcesHugeWarnDesc: 'Setting a huge number (over 50 or 100+): Prolongs the session significantly, consumes high network bandwidth, and risks temporary IP rate limits from search engines.',
+    sourcesLiveWarn: 'Warning: Over 50 sources consumes high bandwidth and may risk rate limits.',
     start: 'Start',
     stop: 'Stop',
     save: 'Save',
@@ -138,6 +180,31 @@ const t = {
     crawlStopped: 'Crawl process stopped.',
     stoppingCrawl: 'Sending stop signal to server...',
     historyTitle: 'Previous Crawl Sessions',
+    settingsTitle: 'General Settings',
+    generalSettings: 'General Settings',
+    apiKeys: 'API Keys',
+    advanced: 'Advanced Options',
+    saveSettings: 'Save Settings',
+    noData: 'No previous data available yet.',
+    sessionID: 'Session ID',
+    topic: 'Topic',
+    statusCol: 'Status',
+    actions: 'Actions',
+    deleteConfirm: 'Are you sure you want to delete this session and all its records?',
+    deleteSuccess: 'Session deleted successfully.',
+    exportSuccess: 'Data exported and downloaded successfully!',
+    saveSuccess: 'Session saved and updated successfully.',
+    viewDetails: 'View Details',
+    downloadData: 'Download JSON',
+    deleteSession: 'Delete Session',
+    sessionDetailsTitle: 'Crawl Session Details & Data Explorer',
+    allCrawledSources: 'Indexed Sources & Web Pages',
+    noSourcesFound: 'No sources indexed for this session yet.',
+    conceptsExtracted: 'Extracted Terms',
+    topicsDiscovered: 'Discovered Topics',
+    averageQuality: 'Avg Quality',
+    wordsCount: 'words',
+    viewOriginal: 'Open Link',
     settingsTitle: 'General Settings',
     generalSettings: 'General Settings',
     apiKeys: 'API Keys',
@@ -274,10 +341,12 @@ function App() {
               });
             }
 
-            if (res.data.status === 'complete' || res.data.status === 'paused') {
+            const sourcesNow = res.data.sources_total ?? 0;
+            const targetMet = maxSources > 0 && sourcesNow >= maxSources;
+            if (res.data.status === 'complete' || res.data.status === 'paused' || targetMet) {
               setIsRunning(false);
-              const isComp = res.data.status === 'complete';
-              const reason = res.data.stop_reason || (isComp ? (lang === 'ar' ? 'اكتملت عملية الزحف بنجاح.' : 'Crawl completed successfully.') : (lang === 'ar' ? 'تم إيقاف عملية الزحف.' : 'Crawl paused.'));
+              const isComp = res.data.status === 'complete' || targetMet;
+              const reason = res.data.stop_reason || (isComp ? (lang === 'ar' ? `اكتملت المهمة بنجاح مع جمع (${sourcesNow}) مصادر.` : `Crawl completed successfully (${sourcesNow} sources).`) : (lang === 'ar' ? 'تم إيقاف عملية الزحف.' : 'Crawl paused.'));
               setStopReason(reason);
               setCrawlFinished(isComp);
               setLogs(prev => {
@@ -293,10 +362,48 @@ function App() {
       }, 750) as unknown as number; // 750ms for lightning responsive UI
     }
     return () => clearInterval(pollInterval);
-  }, [isRunning, sessionId, lang]);
+  }, [isRunning, sessionId, lang, maxSources]);
 
   const addLog = (type: 'info'|'success'|'error'|'sys', message: string) => {
     setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type, message }]);
+  };
+
+  const getSystemStatus = () => {
+    const isTargetMet = maxSources > 0 && stats.sources >= maxSources && stats.sources > 0;
+    if (isRunning && !isTargetMet) {
+      return {
+        label: lang === 'ar' ? `قيد الزحف والتحليل (${stats.sources} / ${maxSources})` : `Crawling & Mining (${stats.sources} / ${maxSources})`,
+        subtext: lang === 'ar' ? 'جاري استكشاف وفهرسة صفحات الويب بنشاط...' : 'Actively discovering and indexing web pages...',
+        badgeClass: 'running',
+        icon: '⚡',
+        progress: maxSources > 0 ? Math.min(100, Math.round((stats.sources / maxSources) * 100)) : 0
+      };
+    }
+    if (crawlFinished || isTargetMet) {
+      return {
+        label: loc.statusCompleted,
+        subtext: lang === 'ar' ? `تم جمع وتحليل كافة المصادر المستهدفة بنجاح (${stats.sources} مصادر).` : `All target sources analyzed successfully (${stats.sources} sources).`,
+        badgeClass: 'complete',
+        icon: '✅',
+        progress: 100
+      };
+    }
+    if (!isRunning && (sessionId || stats.sources > 0)) {
+      return {
+        label: loc.statusStopped,
+        subtext: stopReason || (lang === 'ar' ? 'تم إيقاف الجلسة مؤقتاً.' : 'Session stopped.'),
+        badgeClass: 'paused',
+        icon: '⏸️',
+        progress: maxSources > 0 ? Math.min(100, Math.round((stats.sources / maxSources) * 100)) : 0
+      };
+    }
+    return {
+      label: loc.statusIdle,
+      subtext: lang === 'ar' ? 'أدخل موضوع البحث في الأعلى واضغط البدء' : 'Enter a search topic above and click Start',
+      badgeClass: 'idle',
+      icon: '⚪',
+      progress: 0
+    };
   };
 
   const handleStart = async () => {
@@ -531,45 +638,307 @@ function App() {
                   />
                 </div>
 
-                <div className="stat-card">
-                  <span className="stat-label">{loc.systemStatus}</span>
-                  <span className="stat-value" style={{ 
-                    fontSize: '1.2rem', 
-                    color: isRunning ? 'var(--success-color)' : (crawlFinished ? '#10b981' : 'var(--text-secondary)') 
-                  }}>
-                    {isRunning ? loc.statusRunning : (crawlFinished ? loc.statusCompleted : loc.statusStopped)}
-                  </span>
-                  {stopReason && !isRunning && (
-                    <div style={{
-                      marginTop: '8px',
-                      fontSize: '0.78rem',
-                      lineHeight: '1.4',
-                      color: crawlFinished ? '#34d399' : '#93c5fd',
-                      background: crawlFinished ? 'rgba(16, 185, 129, 0.12)' : 'rgba(59, 130, 246, 0.12)',
-                      padding: '5px 10px',
-                      borderRadius: '6px',
-                      border: `1px solid ${crawlFinished ? 'rgba(16, 185, 129, 0.25)' : 'rgba(59, 130, 246, 0.25)'}`,
-                      fontWeight: 600
-                    }}>
-                      {stopReason}
+                {/* SYSTEM STATUS CARD (REAL-TIME AUTHENTIC STATUS) */}
+                {(() => {
+                  const sysStatus = getSystemStatus();
+                  return (
+                    <div className="stat-card">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <span className="stat-label">{loc.systemStatus}</span>
+                        <span className={`live-status-pill ${sysStatus.badgeClass}`}>
+                          {sysStatus.badgeClass === 'running' && <span className="pulse-dot-live"></span>}
+                          {sysStatus.icon} {sysStatus.label}
+                        </span>
+                      </div>
+                      
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>
+                        {sysStatus.subtext}
+                      </div>
+
+                      {stopReason && !isRunning && (
+                        <div style={{
+                          marginTop: '8px',
+                          fontSize: '0.78rem',
+                          lineHeight: '1.4',
+                          color: (crawlFinished || (stats.sources >= maxSources && stats.sources > 0)) ? '#34d399' : '#93c5fd',
+                          background: (crawlFinished || (stats.sources >= maxSources && stats.sources > 0)) ? 'rgba(16, 185, 129, 0.12)' : 'rgba(59, 130, 246, 0.12)',
+                          padding: '5px 10px',
+                          borderRadius: '6px',
+                          border: `1px solid ${(crawlFinished || (stats.sources >= maxSources && stats.sources > 0)) ? 'rgba(16, 185, 129, 0.25)' : 'rgba(59, 130, 246, 0.25)'}`,
+                          fontWeight: 600
+                        }}>
+                          {stopReason}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
+
+                {/* SOURCES ANALYZED & TARGET CARD */}
                 <div className="stat-card">
-                  <span className="stat-label">{loc.sourcesAnalyzed}</span>
-                  <span className="stat-value">{stats.sources}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span className="stat-label">{loc.sourcesTarget}</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: (stats.sources >= maxSources && stats.sources > 0) ? '#10b981' : 'var(--accent-color)' }}>
+                      {maxSources > 0 ? Math.min(100, Math.round((stats.sources / maxSources) * 100)) : 0}%
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
+                    <span className="stat-value" style={{ 
+                      fontSize: '1.6rem', 
+                      color: (stats.sources >= maxSources && stats.sources > 0) ? '#10b981' : 'var(--accent-color)' 
+                    }}>
+                      {stats.sources}
+                    </span>
+                    <span style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
+                      / {maxSources}
+                    </span>
+                  </div>
+                  <div className="stat-progress-container">
+                    <div className="stat-progress-bar">
+                      <div 
+                        className={`stat-progress-fill ${(stats.sources >= maxSources && stats.sources > 0) ? 'complete' : (isRunning ? '' : 'paused')}`}
+                        style={{ width: `${maxSources > 0 ? Math.min(100, Math.round((stats.sources / maxSources) * 100)) : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
+              {/* SETTINGS AND NUMBERS (TYPABLE INPUTS WITH EXAMPLES, STEPPERS, PRESETS & RICH HOVER TOOLTIPS) */}
               <div className="sidebar-section">
                 <h2 className="sidebar-title"><Activity size={20} /> {loc.settingsAndNumbers}</h2>
+
+                {/* CONFIG 1: SEARCH DEPTH */}
                 <div className="config-box">
-                   <label>{loc.searchDepth}: {maxDepth}</label>
-                   <input type="range" min="1" max="5" value={maxDepth} onChange={(e)=>setMaxDepth(Number(e.target.value))} disabled={isRunning} />
+                  <div className="config-header">
+                    <div className="config-header-left">
+                      <Layers size={17} style={{ color: 'var(--accent-color)' }} />
+                      <span className="config-title-text">{loc.searchDepth}</span>
+                    </div>
+
+                    {/* Interactive Rich Tooltip on Hover */}
+                    <div className="info-trigger-wrapper">
+                      <span className="info-badge-btn" title="ضع الماوس لعرض الفائدة وتحذيرات الأرقام الضخمة">
+                        <Info size={13} /> {loc.detailsAndWarnings}
+                      </span>
+                      <div className="info-popover-card">
+                        <div className="popover-header">
+                          <Layers size={16} />
+                          <span>{loc.depthHoverTitle}</span>
+                        </div>
+                        
+                        <div className="popover-section">
+                          <div className="popover-section-title">💡 {lang === 'ar' ? 'الفائدة والأهمية:' : 'Purpose:'}</div>
+                          <p className="popover-text">{loc.depthBenefit}</p>
+                          <ul className="popover-list">
+                            <li>{loc.depthL1}</li>
+                            <li>{loc.depthL2}</li>
+                            <li>{loc.depthL3}</li>
+                          </ul>
+                        </div>
+
+                        <div className="popover-section">
+                          <div className="popover-section-title" style={{ color: '#10b981' }}>🎯 {loc.recommendedValue}:</div>
+                          <p className="popover-text" style={{ color: '#34d399', fontWeight: 600 }}>{loc.depthRecommendedDesc}</p>
+                        </div>
+
+                        <div className="popover-warn-box">
+                          <div style={{ fontWeight: 800, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <AlertTriangle size={14} /> {loc.whatIfHugeNumber}
+                          </div>
+                          <div>{loc.depthHugeWarnDesc}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Typable number input + Stepper controls */}
+                  <div className="config-input-row">
+                    <div className="config-input-wrapper">
+                      <input 
+                        type="number"
+                        min="1"
+                        max="10"
+                        className="config-num-input"
+                        placeholder={loc.depthPlaceholder}
+                        value={maxDepth || ''}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setMaxDepth(isNaN(val) ? 0 : Math.max(1, Math.min(10, val)));
+                        }}
+                        onBlur={() => {
+                          if (!maxDepth || maxDepth < 1) setMaxDepth(1);
+                        }}
+                        disabled={isRunning}
+                      />
+                    </div>
+                    <button 
+                      type="button" 
+                      className="config-stepper-btn" 
+                      onClick={() => setMaxDepth(prev => Math.max(1, prev - 1))}
+                      disabled={isRunning || maxDepth <= 1}
+                      title="تقليل العمق (-1)"
+                    >
+                      -
+                    </button>
+                    <button 
+                      type="button" 
+                      className="config-stepper-btn" 
+                      onClick={() => setMaxDepth(prev => Math.min(10, prev + 1))}
+                      disabled={isRunning || maxDepth >= 10}
+                      title="زيادة العمق (+1)"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Range slider synchronized */}
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="10" 
+                    value={Math.min(10, Math.max(1, maxDepth))} 
+                    onChange={(e) => setMaxDepth(Number(e.target.value))} 
+                    disabled={isRunning} 
+                  />
+
+                  {/* Quick Preset Buttons */}
+                  <div className="config-presets-row">
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{loc.presets}</span>
+                    {[1, 2, 3, 4, 5].map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        className={`config-preset-pill ${maxDepth === d ? 'active' : ''}`}
+                        onClick={() => setMaxDepth(d)}
+                        disabled={isRunning}
+                      >
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Live Warning if high number */}
+                  {maxDepth >= 4 && (
+                    <div className="config-live-warning">
+                      <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span>{loc.depthLiveWarn}</span>
+                    </div>
+                  )}
                 </div>
+
+                {/* CONFIG 2: MAX SOURCES */}
                 <div className="config-box">
-                   <label>{loc.maxSources}: {maxSources}</label>
-                   <input type="range" min="1" max="50" value={maxSources} onChange={(e)=>setMaxSources(Number(e.target.value))} disabled={isRunning} />
+                  <div className="config-header">
+                    <div className="config-header-left">
+                      <Hash size={17} style={{ color: 'var(--accent-color)' }} />
+                      <span className="config-title-text">{loc.maxSources}</span>
+                    </div>
+
+                    {/* Interactive Rich Tooltip on Hover */}
+                    <div className="info-trigger-wrapper">
+                      <span className="info-badge-btn" title="ضع الماوس لعرض الفائدة وتحذيرات الأرقام الضخمة">
+                        <Info size={13} /> {loc.detailsAndWarnings}
+                      </span>
+                      <div className="info-popover-card">
+                        <div className="popover-header">
+                          <Hash size={16} />
+                          <span>{loc.sourcesHoverTitle}</span>
+                        </div>
+                        
+                        <div className="popover-section">
+                          <div className="popover-section-title">💡 {lang === 'ar' ? 'الفائدة والأهمية:' : 'Purpose:'}</div>
+                          <p className="popover-text">{loc.sourcesBenefit}</p>
+                        </div>
+
+                        <div className="popover-section">
+                          <div className="popover-section-title" style={{ color: '#10b981' }}>🎯 {loc.recommendedValue}:</div>
+                          <p className="popover-text" style={{ color: '#34d399', fontWeight: 600 }}>{loc.sourcesRecommendedDesc}</p>
+                        </div>
+
+                        <div className="popover-warn-box">
+                          <div style={{ fontWeight: 800, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <AlertTriangle size={14} /> {loc.whatIfHugeNumber}
+                          </div>
+                          <div>{loc.sourcesHugeWarnDesc}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Typable number input + Stepper controls */}
+                  <div className="config-input-row">
+                    <div className="config-input-wrapper">
+                      <input 
+                        type="number"
+                        min="1"
+                        max="1000"
+                        className="config-num-input"
+                        placeholder={loc.sourcesPlaceholder}
+                        value={maxSources || ''}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setMaxSources(isNaN(val) ? 0 : Math.max(1, Math.min(1000, val)));
+                        }}
+                        onBlur={() => {
+                          if (!maxSources || maxSources < 1) setMaxSources(1);
+                        }}
+                        disabled={isRunning}
+                      />
+                    </div>
+                    <button 
+                      type="button" 
+                      className="config-stepper-btn" 
+                      onClick={() => setMaxSources(prev => Math.max(1, prev - 5))}
+                      disabled={isRunning || maxSources <= 1}
+                      title="تقليل المصادر (-5)"
+                    >
+                      -
+                    </button>
+                    <button 
+                      type="button" 
+                      className="config-stepper-btn" 
+                      onClick={() => setMaxSources(prev => Math.min(1000, prev + 5))}
+                      disabled={isRunning || maxSources >= 1000}
+                      title="زيادة المصادر (+5)"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Range slider synchronized */}
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="100" 
+                    value={Math.min(100, Math.max(1, maxSources))} 
+                    onChange={(e) => setMaxSources(Number(e.target.value))} 
+                    disabled={isRunning} 
+                  />
+
+                  {/* Quick Preset Buttons */}
+                  <div className="config-presets-row">
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{loc.presets}</span>
+                    {[5, 10, 20, 30, 50, 100].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`config-preset-pill ${maxSources === s ? 'active' : ''}`}
+                        onClick={() => setMaxSources(s)}
+                        disabled={isRunning}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Live Warning if high number */}
+                  {maxSources > 50 && (
+                    <div className="config-live-warning">
+                      <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span>{loc.sourcesLiveWarn}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

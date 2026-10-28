@@ -272,10 +272,10 @@ def delete_session_endpoint(session_id: str):
 
 
 @app.get("/api/graph/{session_id}")
-def get_graph(session_id: str):
+def get_graph(session_id: str, lang: Optional[str] = "en"):
     """Returns the knowledge graph summary (nodes, edges, top concepts)."""
     try:
-        manager = KnowledgeGraphManager(session_id)
+        manager = KnowledgeGraphManager(session_id, lang=lang or "en")
         summary = manager.get_graph_summary()
         return summary
     except Exception as e:

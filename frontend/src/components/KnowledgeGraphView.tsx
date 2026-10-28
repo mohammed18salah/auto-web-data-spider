@@ -157,14 +157,14 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
     if (!selectedSessionId) return;
     setLoading(true);
     setSelectedNode(null);
-    axios.get<GraphData>(`${apiBase}/graph/${selectedSessionId}`)
+    axios.get<GraphData>(`${apiBase}/graph/${selectedSessionId}?lang=${lang}`)
       .then(res => {
         setGraphData(res.data);
         initSimulation(res.data);
       })
       .catch(err => console.error("Error fetching graph data:", err))
       .finally(() => setLoading(false));
-  }, [selectedSessionId, apiBase]);
+  }, [selectedSessionId, apiBase, lang]);
 
   // Initialize simulation positions
   const initSimulation = (data: GraphData) => {

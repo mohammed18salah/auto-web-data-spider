@@ -213,7 +213,7 @@ def get_topics_by_session(session_id: str) -> list[TopicModel]:
 
 # ── Source CRUD ───────────────────────────────────────────────────────────────
 
-def source_exists(content_hash: str) -> bool:
+def source_exists(content_hash: str, session_id: Optional[str] = None) -> bool:
     """
     Check if a source with the given content hash already exists.
 
@@ -221,27 +221,30 @@ def source_exists(content_hash: str) -> bool:
 
     Args:
         content_hash: SHA-256 hex digest of the page text.
+        session_id: Optional session UUID to scope check to the current session.
 
     Returns:
-        True if a matching row exists.
+        True if a matching row exists in this session.
     """
     with DBSession(get_engine()) as db:
         stmt = select(SourceModel).where(SourceModel.content_hash == content_hash)
+        if session_id:
+            stmt = stmt.where(SourceModel.session_id == session_id)
         return db.exec(stmt).first() is not None
 
 
 def create_source(source: SourceModel) -> Optional[SourceModel]:
     """
-    Persist a new SourceModel. Skips silently if hash already exists.
+    Persist a new SourceModel. Skips silently if hash already exists in this session.
 
     Args:
         source: A fully-constructed SourceModel instance.
 
     Returns:
-        The persisted SourceModel, or None if it was a duplicate.
+        The persisted SourceModel, or None if it was a duplicate in this session.
     """
-    if source_exists(source.content_hash):
-        logger.debug(f"Duplicate content skipped: {source.url}")
+    if source_exists(source.content_hash, session_id=source.session_id):
+        logger.debug(f"Duplicate content skipped in session {source.session_id}: {source.url}")
         return None
     with DBSession(get_engine()) as db:
         db.add(source)
@@ -251,18 +254,21 @@ def create_source(source: SourceModel) -> Optional[SourceModel]:
         return source
 
 
-def source_url_exists(url: str) -> bool:
+def source_url_exists(url: str, session_id: Optional[str] = None) -> bool:
     """
-    Check if a source with the given URL already exists.
+    Check if a source with the given URL already exists in this session.
     
     Args:
         url: The absolute URL string.
+        session_id: Optional session UUID to scope check to the current session.
         
     Returns:
         True if a matching row exists.
     """
     with DBSession(get_engine()) as db:
         stmt = select(SourceModel).where(SourceModel.url == url)
+        if session_id:
+            stmt = stmt.where(SourceModel.session_id == session_id)
         return db.exec(stmt).first() is not None
 
 

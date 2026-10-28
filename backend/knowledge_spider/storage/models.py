@@ -89,7 +89,6 @@ class SourceModel(SQLModel, table=True):
     quality_score: float = Field(default=0.0, description="Composite quality score 0–1")
     depth_level: int = Field(default=0, description="Crawl depth at which this was fetched")
     content_hash: str = Field(
-        unique=True,
         index=True,
         description="SHA-256 of normalised page text — dedup key",
     )

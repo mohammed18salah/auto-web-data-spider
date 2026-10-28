@@ -139,7 +139,7 @@ class CrawlerOrchestrator:
 
     def _process_url(self, url: str, topic: TopicModel) -> None:
         """Fetch, parse, NLP, Score, and Store a single URL."""
-        if not is_new_url(url):
+        if not is_new_url(url, self.session_id):
             return
 
         self.current_url = url
@@ -152,7 +152,7 @@ class CrawlerOrchestrator:
         # 1. Fetch
         page_data = fetch_page(url, self.cfg)
         if not page_data:
-            mark_url_visited(url)
+            mark_url_visited(url, self.session_id)
             return
 
         # 2. Parse HTML
@@ -161,7 +161,7 @@ class CrawlerOrchestrator:
         
         if word_count < self.cfg.nlp.min_content_words:
             logger.debug(f"Skipped {url} — only {word_count} words")
-            mark_url_visited(url)
+            mark_url_visited(url, self.session_id)
             return
 
         content_hash = hash_content(parsed["text"])
@@ -197,7 +197,7 @@ class CrawlerOrchestrator:
         persisted_source = create_source(source)
         if persisted_source:
             self.sources_collected += 1
-            mark_url_visited(parsed["url"])
+            mark_url_visited(parsed["url"], self.session_id)
 
             self.current_title = source.title
             self.current_domain = source.domain

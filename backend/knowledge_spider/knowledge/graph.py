@@ -30,8 +30,9 @@ class KnowledgeGraphManager:
     Builds and analyses rich knowledge and entity graphs from crawl session data.
     """
 
-    def __init__(self, session_id: str):
+    def __init__(self, session_id: str, lang: str = "en"):
         self.session_id = session_id
+        self.lang = lang or "en"
         self.graph = nx.DiGraph()
 
     def _get_session_row(self) -> SessionModel | None:
@@ -50,6 +51,7 @@ class KnowledgeGraphManager:
         """
         session_row = self._get_session_row()
         seed_topic = session_row.seed_topic if session_row else "Knowledge Core"
+        is_ar = (self.lang == "ar")
 
         sources = get_sources_by_session(self.session_id)
         terms = get_terms_by_session(self.session_id)
@@ -81,13 +83,18 @@ class KnowledgeGraphManager:
 
         # 1. Root Node
         root_id = "node_root"
+        root_desc = (
+            f"الكيان الرئيسي المستهدف في البحث ({'شخصية أكاديمية' if is_person_query else 'موضوع المعرفة'})"
+            if is_ar
+            else f"Primary target entity in knowledge graph ({'Academic Scholar' if is_person_query else 'Knowledge Domain'})"
+        )
         nodes_dict[root_id] = {
             "id": root_id,
             "name": seed_topic,
             "type": "person" if is_person_query else "concept",
             "is_root": True,
             "val": 42,
-            "details": f"الكيان الرئيسي المستهدف في البحث ({'شخصية أكاديمية' if is_person_query else 'موضوع المعرفة'})",
+            "details": root_desc,
             "group": "root",
         }
 
@@ -116,6 +123,8 @@ class KnowledgeGraphManager:
                 found_orgs[org_kw] += 5
 
         # Add top organizations
+        org_label = "ينتمي إلى / جهة أكاديمية" if is_ar else "Affiliated Institution"
+        org_desc = "مؤسسة / جامعة أكاديمية مرتبطة" if is_ar else "Associated Academic Institution / University"
         for org_name, count in found_orgs.most_common(5):
             org_id = f"org_{abs(hash(org_name)) % 100000}"
             if org_id not in nodes_dict:
@@ -124,13 +133,12 @@ class KnowledgeGraphManager:
                     "name": org_name,
                     "type": "organization",
                     "val": min(32, 20 + count * 2),
-                    "details": "مؤسسة / جامعة أكاديمية مرتبطة",
+                    "details": org_desc,
                     "group": "organization",
                 }
-                add_link(root_id, org_id, "ينتمي إلى / جهة أكاديمية", weight=0.95)
+                add_link(root_id, org_id, org_label, weight=0.95)
 
         # 3. Extract Associated People / Colleagues
-        # Regex for doctors, professors, researchers mentioned (strictly enforcing non-arabic prefix boundary)
         people_pattern = r'(?:^|[^\u0600-\u06FF])(?:الدكتور|دكتور|أستاذ|الاستاذ|أ\.د|البروفيسور|د\.|Dr\.|Prof\.)\s+([\u0600-\u06FF]{3,16}(?:\s+[\u0600-\u06FF]{3,16}){1,3})'
         
         medical_noise = {
@@ -169,46 +177,43 @@ class KnowledgeGraphManager:
 
         for match in re.finditer(people_pattern, combined_text):
             p_name = match.group(1).strip()
-            # Clean punctuation
             p_name = re.sub(r'[,،.؛:!؟\"\'»«]', '', p_name).strip()
             words = p_name.split()
 
-            # Must have 2 to 3 name words
             if len(words) < 2 or len(words) > 3:
                 continue
 
-            # Must not contain any word matching seed person tokens (to avoid "د. محمد صلاح التفاصيل")
             if any(w in seed_words for w in words):
                 continue
 
-            # Must not contain stop words or medical noise
             if any(is_stop_token(w) for w in words):
                 continue
 
-            # Must not contain generic institutions
             if any(stop in p_name for stop in ["جامعة", "كلية", "قسم", "محافظة", "العراق", "مدينة"]):
                 continue
 
             found_people[p_name] += 1
 
         # Add top connected people
+        person_label = "زميل / باحث مشارك" if is_ar else "Peer / Co-Researcher"
+        person_desc = "باحث مشارك / زميل أكاديمي تم رصده في الأوراق والمنشورات" if is_ar else "Co-author / Academic Peer identified in literature"
+        faculty_label = "هيئة التدريس" if is_ar else "Faculty / Dept"
         for p_name, count in found_people.most_common(6):
             p_id = f"person_{abs(hash(p_name)) % 100000}"
             if p_id not in nodes_dict:
-                display_name = p_name if p_name.startswith("د.") or p_name.startswith("أ.") else f"د. {p_name}"
+                display_name = p_name if p_name.startswith("د.") or p_name.startswith("أ.") or p_name.startswith("Dr.") else f"د. {p_name}"
                 nodes_dict[p_id] = {
                     "id": p_id,
                     "name": display_name,
                     "type": "person",
                     "val": min(28, 16 + count * 2),
-                    "details": "باحث مشارك / زميل أكاديمي تم رصده في الأوراق والمنشورات",
+                    "details": person_desc,
                     "group": "person",
                 }
-                add_link(root_id, p_id, "زميل / باحث مشارك", weight=0.85)
-                # Link person with the top organization if present
+                add_link(root_id, p_id, person_label, weight=0.85)
                 for org_id, org_node in list(nodes_dict.items()):
                     if org_node["type"] == "organization":
-                        add_link(p_id, org_id, "هيئة التدريس", weight=0.6)
+                        add_link(p_id, org_id, faculty_label, weight=0.6)
                         break
 
         # 4. Extract Key Concepts & Research Domains from Terms
@@ -224,7 +229,7 @@ class KnowledgeGraphManager:
             if len(clean_t) >= 4 and clean_t not in generic_stopwords and clean_t not in seed_topic:
                 top_concepts.append((clean_t, t.frequency))
 
-        # Deduplicate and pick top 10 concepts
+        concept_label = "مجال بحثي وتخصص" if is_ar else "Research Focus"
         seen_concepts = set()
         for c_name, freq in top_concepts:
             if len(seen_concepts) >= 10:
@@ -240,12 +245,13 @@ class KnowledgeGraphManager:
                     "name": c_name,
                     "type": "concept",
                     "val": min(24, 14 + int(freq)),
-                    "details": f"مفهوم ومجال بحثي مستخلص (تكرار: {freq})",
+                    "details": f"مفهوم ومجال بحثي مستخلص (تكرار: {freq})" if is_ar else f"Extracted Research Concept & Domain (frequency: {freq})",
                     "group": "concept",
                 }
-                add_link(root_id, c_id, "مجال بحثي وتخصص", weight=0.75)
+                add_link(root_id, c_id, concept_label, weight=0.75)
 
         # 5. Extract Publications / Articles
+        pub_label = "ورقة علمية / مصدر" if is_ar else "Publication / Source"
         for s in sources[:6]:
             if s.title and len(s.title) > 6 and s.title != seed_topic:
                 pub_id = f"pub_{abs(hash(s.url)) % 100000}"
@@ -258,11 +264,11 @@ class KnowledgeGraphManager:
                         "name": short_title,
                         "type": "publication",
                         "val": 18,
-                        "details": f"ورقة علمية / مصدر موثق: {s.domain}",
+                        "details": f"ورقة علمية / مصدر موثق: {s.domain}" if is_ar else f"Verified Publication / Document Source: {s.domain}",
                         "url": s.url,
                         "group": "publication",
                     }
-                    add_link(root_id, pub_id, "ورقة علمية / مصدر", weight=0.8)
+                    add_link(root_id, pub_id, pub_label, weight=0.8)
 
         # 6. Build NetworkX graph to compute PageRank & Centrality layout
         nx_graph = nx.Graph()
@@ -271,7 +277,6 @@ class KnowledgeGraphManager:
         for link in links_list:
             nx_graph.add_edge(link["source"], link["target"], weight=link.get("weight", 1.0))
 
-        # Compute PageRank & Degree
         pagerank_dict = nx.pagerank(nx_graph, weight="weight") if len(nx_graph) > 0 else {}
 
         for nid, node in nodes_dict.items():
@@ -279,17 +284,14 @@ class KnowledgeGraphManager:
             node["degree"] = deg
             node["pagerank"] = round(pagerank_dict.get(nid, 0.05), 3)
 
-        # Compute initial 2D coordinates using spring layout
         try:
             pos = nx.spring_layout(nx_graph, k=0.45, iterations=40, seed=42)
             for nid, (px, py) in pos.items():
-                # Normalize from [-1, 1] to [0.08, 0.92]
                 nodes_dict[nid]["x"] = round((px + 1.0) / 2.0 * 0.84 + 0.08, 3)
                 nodes_dict[nid]["y"] = round((py + 1.0) / 2.0 * 0.84 + 0.08, 3)
         except Exception:
             pass
 
-        # Set root dead center
         if root_id in nodes_dict:
             nodes_dict[root_id]["x"] = 0.50
             nodes_dict[root_id]["y"] = 0.50
@@ -312,11 +314,11 @@ class KnowledgeGraphManager:
             "nodes": nodes_list,
             "edges": links_list,
             "categories": [
-                {"id": "all", "label": "الكل", "color": "#94a3b8"},
-                {"id": "person", "label": "الأشخاص والزملاء", "color": "#10b981"},
-                {"id": "organization", "label": "المؤسسات والجامعات", "color": "#a855f7"},
-                {"id": "concept", "label": "المفاهيم والتخصصات", "color": "#38bdf8"},
-                {"id": "publication", "label": "الأبحاث والمنشورات", "color": "#f43f5e"},
+                {"id": "all", "label": "الكل" if is_ar else "All", "color": "#94a3b8"},
+                {"id": "person", "label": "الأشخاص والزملاء" if is_ar else "People & Peers", "color": "#10b981"},
+                {"id": "organization", "label": "المؤسسات والجامعات" if is_ar else "Universities & Orgs", "color": "#a855f7"},
+                {"id": "concept", "label": "المفاهيم والتخصصات" if is_ar else "Concepts & Fields", "color": "#38bdf8"},
+                {"id": "publication", "label": "الأبحاث والمنشورات" if is_ar else "Publications", "color": "#f43f5e"},
             ]
         }
 

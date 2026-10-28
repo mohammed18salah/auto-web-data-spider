@@ -1856,6 +1856,12 @@ body {
   animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+[data-theme='light'] .knowledge-graph-panel {
+  background: #f8fafc;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08);
+}
+
 /* Header bar matching exact design */
 .graph-header-bar {
   display: flex;
@@ -1868,6 +1874,11 @@ body {
   gap: 12px;
   min-height: 52px;
   z-index: 10;
+}
+
+[data-theme='light'] .graph-header-bar {
+  background: #ffffff;
+  border-bottom-color: rgba(0, 0, 0, 0.08);
 }
 
 .graph-title-group {
@@ -1889,6 +1900,10 @@ body {
   font-weight: 800;
   color: #f8fafc;
   letter-spacing: -0.01em;
+}
+
+[data-theme='light'] .graph-main-title {
+  color: #0f172a;
 }
 
 .graph-seed-badge {
@@ -1941,6 +1956,12 @@ body {
   transition: all 0.2s ease;
 }
 
+[data-theme='light'] .graph-session-select {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.16);
+  color: #0f172a;
+}
+
 .graph-session-select:focus {
   border-color: #38bdf8;
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
@@ -1976,6 +1997,12 @@ body {
   width: 190px;
   outline: none;
   transition: all 0.2s ease;
+}
+
+[data-theme='light'] .graph-search-input {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.16);
+  color: #0f172a;
 }
 
 [dir="rtl"] .graph-search-input {

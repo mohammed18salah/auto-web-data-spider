@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🕷️ KnowledgeSpider
+# KnowledgeSpider
 
 ### Autonomous Web Crawling, NLP Entity Extraction & Knowledge Graph Discovery Engine
 
@@ -17,20 +17,23 @@
   <b>Transform any seed topic into an interconnected, queryable knowledge graph — 100% local, autonomous, and free of proprietary API tokens.</b>
 </p>
 
-[Key Features](#-key-features) •
-[Why KnowledgeSpider? (Comparison)](#-why-knowledgespider-competitive-comparison) •
-[Architecture](#-system-architecture) •
-[Quick Start](#-quick-start) •
-[Desktop App](#-desktop-app--ui) •
-[CLI & Interactive Shell](#-cli--interactive-shell) •
-[API Reference](#-rest-api-reference) •
-[Roadmap](#-open-source-roadmap)
+[Overview](#overview) •
+[Comparison Matrix](#why-knowledgespider-competitive-comparison) •
+[How It Works](#how-it-works-autonomous-exploration--deep-branching-engine) •
+[Anti-Bot & Playwright](#anti-bot-protection--javascript-handling-playwright-engine) •
+[KnowledgeSpider vs OpenClaw & AI Agents](#detailed-comparison-knowledgespider-vs-openclaw--agentic-ai-scrapers) •
+[System Architecture](#system-architecture) •
+[Quick Start](#quick-start) •
+[Desktop App](#desktop-app--ui) •
+[CLI & Shell](#cli--interactive-shell) •
+[REST API](#rest-api-reference) •
+[Roadmap](#open-source-roadmap)
 
 ---
 
 </div>
 
-## 📖 Overview
+## Overview
 
 **KnowledgeSpider** is an open-source autonomous web discovery and knowledge-synthesis system. Given any single keyword or seed topic (e.g. *"Quantum Computing"*, *"Cybersecurity Frameworks"*, or *"Domain Name System"*), KnowledgeSpider autonomously:
 
@@ -44,26 +47,26 @@
 
 ---
 
-## ⚡ Why KnowledgeSpider? Competitive Comparison
+## Why KnowledgeSpider? Competitive Comparison
 
 Most existing web scrapers either require manual rule-writing, dump unstructured plain text, or rely on expensive, non-deterministic cloud LLMs. Here is how KnowledgeSpider compares against standard scrapers and modern AI crawling platforms:
 
-| Feature / Dimension | 🕷️ **KnowledgeSpider** | 🕷️ **Scrapy** | 🤖 **AutoGPT / Agent Scrapers** | 🔥 **Crawl4AI / Firecrawl** | 🌐 **Neo4j / Memgraph Stacks** |
+| Feature / Dimension | **KnowledgeSpider** | **Scrapy** | **AutoGPT / Agent Scrapers** | **Crawl4AI / Firecrawl** | **Neo4j / Memgraph Stacks** |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Autonomous Topic Discovery** | ✅ **Built-in** (automatic search & branch) | ❌ Manual spiders & link extractors | ⚠️ Yes, but prone to drifting | ❌ URL-based scraping only | ❌ Graph only, no crawler |
-| **NLP Entity & Noun Extraction** | ✅ **Built-in (spaCy local)** | ❌ Requires custom pipelines | ⚠️ Cloud LLM tokens | ⚠️ Markdown / LLM extraction | ❌ Manual ingestion |
-| **Extractive Summarization** | ✅ **Built-in (TextRank)** | ❌ None | ⚠️ Expensive LLM tokens | ⚠️ Markdown summary | ❌ None |
-| **Integrated Knowledge Graph** | ✅ **Built-in (NetworkX + PageRank)** | ❌ None | ❌ None (raw text output) | ❌ None | ✅ Yes (requires DB server) |
-| **Cost per 1,000 Pages** | 🟢 **$0.00 (100% Free & Local)** | 🟢 $0.00 | 🔴 $5.00 – $30.00 (OpenAI/Anthropic) | 🟠 Token/Subscription cost | 🟠 Server infrastructure cost |
-| **Desktop GUI Included** | ✅ **Yes (Electron + React 19)** | ❌ Terminal only / Scrapyd | ❌ Web dashboard or terminal | ⚠️ Web dashboard | ⚠️ Web browser tool |
-| **Multilingual UI (AR / EN)** | ✅ **Yes (RTL + LTR Native)** | ❌ None | ❌ English-first | ❌ English-first | ❌ English-first |
-| **Local-First & Zero Telemetry** | ✅ **SQLite (Single-file DB)** | ✅ Files / SQLite | ❌ Cloud telemetry / Third-party APIs | ⚠️ Hosted or local Docker | ❌ Heavy Docker instances |
-| **Deterministic Quality Scoring** | ✅ **Configurable Formula** | ❌ Manual coding | ❌ Hallucinatory / Non-deterministic | ❌ Basic heuristics | ❌ None |
-| **Interactive Terminal Shell** | ✅ **Rich REPL Shell** | ⚠️ Scrapy Shell (page only) | ❌ Chat loop | ❌ None | ⚠️ Cypher shell |
+| **Autonomous Topic Discovery** | **Built-in** (automatic search & branch) | Manual spiders & link extractors | Supported, but prone to drifting | URL-based scraping only | Graph only, no crawler |
+| **NLP Entity & Noun Extraction** | **Built-in (spaCy local)** | Requires custom pipelines | Requires cloud LLM tokens | Markdown / LLM extraction | Manual ingestion |
+| **Extractive Summarization** | **Built-in (TextRank)** | None | Expensive LLM tokens | Markdown summary | None |
+| **Integrated Knowledge Graph** | **Built-in (NetworkX + PageRank)** | None | None (raw text output) | None | Yes (requires DB server) |
+| **Cost per 1,000 Pages** | **$0.00 (100% Free & Local)** | $0.00 | $5.00 – $30.00 (OpenAI/Anthropic) | Token / Subscription cost | Server infrastructure cost |
+| **Desktop GUI Included** | **Yes (Electron + React 19)** | Terminal only / Scrapyd | Web dashboard or terminal | Web dashboard | Web browser tool |
+| **Multilingual UI (AR / EN)** | **Yes (RTL + LTR Native)** | None | English-first | English-first | English-first |
+| **Local-First & Zero Telemetry** | **SQLite (Single-file DB)** | Files / SQLite | Cloud telemetry / Third-party APIs | Hosted or local Docker | Heavy Docker instances |
+| **Deterministic Quality Scoring** | **Configurable Formula** | Manual coding | Non-deterministic / LLM variance | Basic heuristics | None |
+| **Interactive Terminal Shell** | **Rich REPL Shell** | Scrapy Shell (page only) | Chat loop | None | Cypher shell |
 
 ---
 
-## 🔍 How It Works: Autonomous Exploration & Deep-Branching Engine
+## How It Works: Autonomous Exploration & Deep-Branching Engine
 
 Unlike standard scrapers that demand predefined sitemaps or static link lists, KnowledgeSpider acts as an autonomous conceptual cartographer. It discovers, explores, and deep-dives into unfamiliar domains through a 6-stage closed-loop pipeline:
 
@@ -117,7 +120,7 @@ sequenceDiagram
 
 ---
 
-## 🛡️ Anti-Bot Protection & JavaScript Handling (Playwright Engine)
+## Anti-Bot Protection & JavaScript Handling (Playwright Engine)
 
 Modern web pages are frequently built as dynamic client-side Single Page Applications (SPAs using React, Angular, or Vue) or guarded by anti-bot verification challenges (Cloudflare, Akamai, or basic CAPTCHA gates). Traditional HTTP client libraries (such as `requests`, `urllib`, or raw `curl`) fail on these sites with blank pages or immediate `403 Forbidden` errors.
 
@@ -143,12 +146,12 @@ Rather than firing synthetic HTTP GET requests, KnowledgeSpider launches a headl
 
 ---
 
-## ⚔️ Detailed Comparison: KnowledgeSpider vs OpenClaw & Agentic AI Scrapers
+## Detailed Comparison: KnowledgeSpider vs OpenClaw & Agentic AI Scrapers
 
 How does KnowledgeSpider differ from tools like **OpenClaw** or recent **autonomous AI web agents** (e.g. ScrapeGraphAI, AutoGPT web tools, BrowserGym)?
 
 ### 1. KnowledgeSpider vs OpenClaw
-| Dimension | 🕷️ KnowledgeSpider | 🦅 OpenClaw / Repo Crawlers |
+| Dimension | KnowledgeSpider | OpenClaw / Repo Crawlers |
 | :--- | :--- | :--- |
 | **Primary Goal** | **Autonomous Domain Knowledge Discovery**: Builds an interconnected concept graph from any topic. | **Targeted Extraction / Auditing**: Focused on predefined website scraping, PR reviews, and repo audits. |
 | **Input Required** | **A single idea or keyword** (e.g. `"Raft Consensus"`). | **Specific URLs, sitemaps, or repository targets**. |
@@ -160,13 +163,13 @@ Modern autonomous AI agents (such as ScrapeGraphAI, AutoGPT, or Multi-Agent Web 
 
 ```
 Typical AI Agent Loop (Slow & Expensive):
-Page HTML ➔ Cloud LLM ($$$ per token) ➔ Parse Plan ➔ Click/Navigate ➔ Cloud LLM ($$$) ➔ Next Page ...
+Page HTML -> Cloud LLM ($$$ per token) -> Parse Plan -> Click/Navigate -> Cloud LLM ($$$) -> Next Page ...
 Cost: ~$0.05 to $0.20 PER PAGE. 200 pages = $10.00 – $40.00+
 ```
 
 ```
 KnowledgeSpider Engine Loop (Instant & Free):
-Page HTML ➔ Playwright Chromium ➔ Local spaCy NER ➔ TextRank ➔ NetworkX ➔ SQLite
+Page HTML -> Playwright Chromium -> Local spaCy NER -> TextRank -> NetworkX -> SQLite
 Cost: $0.00. 100% Deterministic. Zero API latency. Zero token limits.
 ```
 
@@ -178,7 +181,7 @@ Cost: $0.00. 100% Deterministic. Zero API latency. Zero token limits.
 
 ---
 
-## 🌟 What Makes KnowledgeSpider a Standout Open-Source Project?
+## What Makes KnowledgeSpider a Standout Open-Source Project?
 
 - **Zero Cloud Lock-in & Privacy First**: No OpenAI/Anthropic API keys required. Everything runs locally on your machine using spaCy, NLTK, and sumy.
 - **RAG-Ready Structured Outputs**: Directly feeds modern Vector Databases and RAG pipelines (LangChain, LlamaIndex, Ollama, ChromaDB) with pre-extracted entities and PageRank-weighted summaries.
@@ -195,7 +198,7 @@ Cost: $0.00. 100% Deterministic. Zero API latency. Zero token limits.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 The following diagram illustrates the complete end-to-end data processing lifecycle inside KnowledgeSpider:
 
@@ -248,7 +251,7 @@ flowchart TD
 
 ---
 
-## 📂 Repository Layout
+## Repository Layout
 
 ```text
 data-spider/
@@ -287,7 +290,7 @@ data-spider/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -362,7 +365,7 @@ data-spider/
 
 ---
 
-## 🖥️ Desktop App & UI
+## Desktop App & UI
 
 The KnowledgeSpider desktop GUI is engineered for high productivity and intuitive visual monitoring:
 
@@ -375,7 +378,7 @@ The KnowledgeSpider desktop GUI is engineered for high productivity and intuitiv
 
 ---
 
-## 💻 CLI & Interactive Shell
+## CLI & Interactive Shell
 
 KnowledgeSpider includes a full-featured Command Line Interface built with **Typer** and **Rich**.
 
@@ -433,7 +436,7 @@ spider[c4a189f2]> exit
 
 ---
 
-## ⚙️ Configuration (`config.toml`)
+## Configuration (`config.toml`)
 
 All runtime behavior is controlled centrally via `backend/config.toml`:
 
@@ -473,7 +476,7 @@ domains = [
 
 ---
 
-## 🔌 REST API Reference
+## REST API Reference
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -491,7 +494,7 @@ domains = [
 
 ---
 
-## 🧪 Testing & Validation
+## Testing & Validation
 
 KnowledgeSpider includes a 22-step automated verification suite covering database models, NLP summarizers, deduplication, robots parsing, and graph algorithms:
 
@@ -514,7 +517,7 @@ npm run build
 
 ---
 
-## 🗺️ Open-Source Roadmap
+## Open-Source Roadmap
 
 - [x] **v1.0 (Current)**:
   - Autonomous search-driven crawling loop
@@ -533,7 +536,7 @@ npm run build
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are warmly welcomed! KnowledgeSpider thrives on community ideas, bug reports, and pull requests.
 
@@ -547,12 +550,12 @@ Please make sure to run tests and follow clean code conventions before opening P
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details. Free for commercial and personal use.
 
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by the KnowledgeSpider Team. If you find this project useful, please consider giving it a ⭐ on GitHub!</sub>
+  <sub>Built by the KnowledgeSpider Team. If you find this project useful, please consider starring the repository on GitHub!</sub>
 </div>

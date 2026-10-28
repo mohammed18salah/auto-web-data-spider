@@ -395,7 +395,25 @@ def get_session_stats(session_id: str) -> dict:
         queued  = sum(1 for t in topics if t.status == "queued")
         avg_q   = round(sum(s.quality_score for s in sources) / len(sources), 3) if sources else 0.0
 
+        session_row = db.get(SessionModel, session_id)
+        
+        # Sort recent sources by crawled_at or id descending
+        recent_sources = [
+            {
+                "id": s.id,
+                "url": s.url,
+                "domain": s.domain,
+                "title": s.title or s.url,
+                "summary": s.summary or "",
+                "quality_score": s.quality_score,
+                "word_count": s.word_count,
+            }
+            for s in sorted(sources, key=lambda x: getattr(x, "crawled_at", getattr(x, "id", 0)), reverse=True)[:5]
+        ]
+
         return {
+            "status":        session_row.status if session_row else "unknown",
+            "topic":         session_row.seed_topic if session_row else "",
             "topics":        len(topics),
             "sources_total": len(sources),
             "edges":         len(edges),
@@ -403,6 +421,7 @@ def get_session_stats(session_id: str) -> dict:
             "topics_done":   done,
             "topics_queued": queued,
             "avg_quality":   avg_q,
+            "latest_sources": recent_sources,
         }
 
 

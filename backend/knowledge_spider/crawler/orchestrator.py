@@ -2,7 +2,7 @@
 Module: crawler/orchestrator.py
 Purpose: The main Crawler Orchestrator.
          Ties together DB state, fetcher, parser, deduplicator, NLP,
-         and scoring into a robust, autonomous crawl loop.
+         and scoring into a robust, autonomous crawl loop with live state tracking.
 Author: KnowledgeSpider Engine
 """
 
@@ -32,7 +32,7 @@ from knowledge_spider.storage.database import (
 from knowledge_spider.query.query_engine import generate_queries, target_sources
 from knowledge_spider.crawler.deduplicator import is_new_url, mark_url_visited
 from knowledge_spider.crawler.fetcher import fetch_page
-from knowledge_spider.crawler.parser import parse_page, extract_outbound_links
+from knowledge_spider.crawler.parser import parse_page
 from knowledge_spider.nlp.extractor import extract_terms
 from knowledge_spider.nlp.summariser import generate_summary
 from knowledge_spider.scoring.scorer import calculate_quality_score
@@ -41,7 +41,7 @@ from knowledge_spider.utils.logger import logger
 
 
 class CrawlerOrchestrator:
-    """Manages the autonomous crawl loop for a given session."""
+    """Manages the autonomous crawl loop for a given session with real-time UI telemetry."""
 
     def __init__(self, session_id: str, config: Config | None = None):
         self.session_id = session_id
@@ -53,12 +53,44 @@ class CrawlerOrchestrator:
         self.start_time = time.time()
         self._stop_requested = False
 
+        # Live telemetry properties for UI display
+        self.current_url: str = ""
+        self.current_title: str = ""
+        self.current_domain: str = ""
+        self.current_summary: str = ""
+        self.current_score: float = 0.0
+        self.live_logs: list[dict] = []
+
         # Seed the queue if this is a fresh session
         self._seed_initial_topic()
+
+    def add_log(self, log_type: str, message: str) -> None:
+        """Add a structured timestamped log for frontend display."""
+        entry = {
+            "time": datetime.now().strftime("%I:%M:%S %p"),
+            "type": log_type,
+            "message": message,
+        }
+        self.live_logs.append(entry)
+        if len(self.live_logs) > 60:
+            self.live_logs = self.live_logs[-60:]
+
+    def get_live_state(self) -> dict:
+        """Expose current telemetry for live UI polling."""
+        return {
+            "current_url": self.current_url,
+            "current_title": self.current_title,
+            "current_domain": self.current_domain,
+            "current_summary": self.current_summary,
+            "current_score": self.current_score,
+            "sources_collected": self.sources_collected,
+            "logs": list(self.live_logs),
+        }
 
     def stop(self) -> None:
         """Signal the orchestrator to stop crawling gracefully."""
         self._stop_requested = True
+        self.add_log("sys", "تم استلام أمر إيقاف عملية الزحف...")
         logger.info(f"Stop signal received for session {self.session_id[:8]}")
 
     @property
@@ -88,7 +120,6 @@ class CrawlerOrchestrator:
 
     def _get_next_topic(self) -> TopicModel | None:
         """Fetch the highest priority queued topic."""
-        # get_topics_by_session orders by depth ASC, relevance DESC
         topics = get_topics_by_session(self.session_id)
         for t in topics:
             if t.status == "queued" and t.depth <= self.cfg.crawler.max_depth:
@@ -100,10 +131,13 @@ class CrawlerOrchestrator:
         if not is_new_url(url):
             return
 
+        self.current_url = url
+        self.add_log("sys", f"جاري استعراض وتحميل: {url[:70]}")
+
         # 1. Fetch
         page_data = fetch_page(url, self.cfg)
         if not page_data:
-            mark_url_visited(url) # Prevent re-fetching failed URLs
+            mark_url_visited(url)
             return
 
         # 2. Parse HTML
@@ -111,7 +145,7 @@ class CrawlerOrchestrator:
         word_count = parsed["word_count"]
         
         if word_count < self.cfg.nlp.min_content_words:
-            logger.debug(f"Skipped {url} — only {word_count} words (min {self.cfg.nlp.min_content_words})")
+            logger.debug(f"Skipped {url} — only {word_count} words")
             mark_url_visited(url)
             return
 
@@ -150,6 +184,12 @@ class CrawlerOrchestrator:
             self.sources_collected += 1
             mark_url_visited(parsed["url"])
 
+            self.current_title = source.title
+            self.current_domain = source.domain
+            self.current_summary = source.summary or ""
+            self.current_score = score
+            self.add_log("success", f"تم تحليل وحفظ: {source.title[:45]} (جودة: {int(score * 100)}%)")
+
             # 6. Save Terms
             term_models = [
                 TermModel(
@@ -158,7 +198,6 @@ class CrawlerOrchestrator:
                     source_id=persisted_source.id,
                     term=t_val,
                     frequency=freq,
-                    # We store basic frequency for now, tf-idf can be calculated at export
                     tfidf_score=float(freq) 
                 )
                 for t_val, freq in terms_dict.items()
@@ -166,19 +205,15 @@ class CrawlerOrchestrator:
             bulk_insert_terms(term_models)
 
             # 7. Discover new topics (sub-topics) based on the top extracted terms
-            # We only create subtopics if we haven't hit max depth
             if topic.depth < self.cfg.crawler.max_depth:
                 self._branch_topics(topic, terms_dict, parsed["url"])
 
     def _branch_topics(self, parent_topic: TopicModel, terms_dict: dict[str, int], source_url: str) -> None:
         """Create subtopics and edges based on extracted high-frequency terms."""
-        # Take the top N terms as new topics
         top_terms = list(terms_dict.items())[:self.cfg.nlp.max_topics_per_page]
         
         for term, freq in top_terms:
-            # Score decay: subtopic relevance relies on parent relevance and frequency
             new_relevance = parent_topic.relevance_score * 0.9 
-            
             existing = get_topic_by_name(self.session_id, term)
             if not existing:
                 new_topic = TopicModel(
@@ -191,7 +226,6 @@ class CrawlerOrchestrator:
                 )
                 existing = create_topic(new_topic)
             
-            # Create edge
             create_edge(TopicEdgeModel(
                 session_id=self.session_id,
                 from_topic=parent_topic.name,
@@ -200,11 +234,10 @@ class CrawlerOrchestrator:
             ))
 
     def run(self) -> None:
-        """
-        Execute the autonomous crawl loop.
-        """
+        """Execute the autonomous crawl loop."""
         logger.info(f"Starting Orchestrator for session {self.session_id[:8]}...")
         save_session_state(self.session_id, STATUS_RUNNING)
+        self.add_log("info", f"بدء الزحف الذكي لموضوع: {self.session.seed_topic}")
 
         try:
             while True:
@@ -216,6 +249,7 @@ class CrawlerOrchestrator:
                 # Limit Checks
                 if self.sources_collected >= self.cfg.crawler.max_sources:
                     logger.info(f"Reached max sources limit ({self.cfg.crawler.max_sources}). Stopping.")
+                    self.add_log("info", f"تم الوصول إلى الحد الأقصى للمصادر ({self.cfg.crawler.max_sources})")
                     break
                 if self._is_time_up():
                     logger.info(f"Reached time limit ({self.cfg.crawler.time_limit_minutes}m). Stopping.")
@@ -225,9 +259,11 @@ class CrawlerOrchestrator:
                 topic = self._get_next_topic()
                 if not topic:
                     logger.info("Topic queue is exhausted or max depth reached. Stopping.")
+                    self.add_log("info", "اكتمل استكشاف جميع الموضوعات والروابط المستهدفة.")
                     break
 
                 logger.info(f"Processing Topic: '{topic.name}' (Depth {topic.depth})")
+                self.add_log("sys", f"استهداف موضوع: '{topic.name}' (المستوى {topic.depth})...")
                 update_topic_status(topic.id, "processing")
 
                 # Generate Queries & Search
@@ -236,15 +272,17 @@ class CrawlerOrchestrator:
 
                 if not urls:
                     logger.warning(f"No URLs found for topic '{topic.name}'")
+                    self.add_log("info", f"لم يتم العثور على روابط إضافية لـ '{topic.name}'.")
                     update_topic_status(topic.id, "skipped")
                     continue
+
+                self.add_log("info", f"تم العثور على {len(urls)} مصادر ويب جاهزة للاستكشاف.")
 
                 # Process URLs
                 for url in urls:
                     if self._stop_requested:
                         logger.info("Stopping URL processing due to cancel signal")
                         break
-                    # Break inner loop if limits reached
                     if self.sources_collected >= self.cfg.crawler.max_sources or self._is_time_up():
                         break
                     
@@ -252,22 +290,21 @@ class CrawlerOrchestrator:
 
                 # Mark topic done
                 update_topic_status(topic.id, "done")
-                
-                # Periodically save running state
                 save_session_state(self.session_id, STATUS_RUNNING)
 
         except KeyboardInterrupt:
             logger.warning("\nOrchestrator interrupted by user (Ctrl+C).")
-            # State gets paused gracefully outside by CLI layer, but we can do nothing here
             raise
         except Exception as e:
             logger.exception(f"Orchestrator fatal error: {e}")
+            self.add_log("error", f"خطأ أثناء الزحف: {str(e)[:100]}")
             raise
         finally:
             if self._stop_requested:
                 save_session_state(self.session_id, STATUS_PAUSED)
-                logger.info(f"Session {self.session_id[:8]} marked as paused following stop request.")
+                self.add_log("info", "تم إيقاف عملية الزحف مؤقتاً.")
             elif not self._is_time_up() and self.sources_collected < self.cfg.crawler.max_sources:
                 mark_session_complete(self.session_id)
+                self.add_log("success", f"اكتملت الجلسة بنجاح! تم جمع {self.sources_collected} مصادر.")
 
         logger.info(f"Orchestrator finished. Collected {self.sources_collected} sources.")

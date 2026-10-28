@@ -152,10 +152,44 @@ def stop_crawl(session_id: Optional[str] = None):
 
 @app.get("/api/session/{session_id}")
 def get_session_info(session_id: str):
-    """Returns the stats (sources, topics, terms) for a session."""
+    """Returns the stats (sources, topics, terms) for a session along with live telemetry if active."""
     stats = get_session_stats(session_id)
     if not stats:
         raise HTTPException(status_code=404, detail="Session not found or no stats available yet.")
+    
+    with crawler_lock:
+        orch = active_crawlers.get(session_id)
+        if orch:
+            telemetry = orch.get_live_state()
+            stats.update({
+                "status": "running",
+                "current_url": telemetry.get("current_url", ""),
+                "current_title": telemetry.get("current_title", ""),
+                "current_domain": telemetry.get("current_domain", ""),
+                "current_summary": telemetry.get("current_summary", ""),
+                "current_score": telemetry.get("current_score", 0.0),
+                "live_logs": telemetry.get("logs", []),
+            })
+        else:
+            if stats.get("latest_sources"):
+                top_s = stats["latest_sources"][0]
+                stats.update({
+                    "current_url": top_s["url"],
+                    "current_title": top_s["title"],
+                    "current_domain": top_s["domain"],
+                    "current_summary": top_s["summary"],
+                    "current_score": top_s["quality_score"],
+                    "live_logs": [],
+                })
+            else:
+                stats.update({
+                    "current_url": "",
+                    "current_title": "",
+                    "current_domain": "",
+                    "current_summary": "",
+                    "current_score": 0.0,
+                    "live_logs": [],
+                })
     return stats
 
 

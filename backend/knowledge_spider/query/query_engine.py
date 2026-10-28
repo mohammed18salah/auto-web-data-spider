@@ -19,44 +19,39 @@ from knowledge_spider.utils.logger import logger
 
 def generate_queries(topic: str) -> list[str]:
     """
-    Generate a list of search queries to deeply explore a topic.
+    Generate high-precision search queries to deeply explore a topic.
 
     Args:
-        topic: The topic name (e.g. "DNS").
+        topic: The topic name (e.g. "جامعة الانبار" or "Quantum Computing").
 
     Returns:
-        List of generated query strings based on predefined templates.
+        List of generated query strings, with the exact topic prioritized first.
     """
     from knowledge_spider.utils.lang_detect import detect_script
     
-    script = detect_script(topic)
+    clean_topic = topic.strip()
+    script = detect_script(clean_topic)
     
     if script == "ar":
         templates = [
-            "ما هو {topic}",
-            "شرح {topic}",
-            "دليل {topic}",
-            "{topic} بروتوكول",
-            "أمثلة على {topic}",
-            "كيف يعمل {topic}",
-            "أنواع {topic}",
-            "{topic} بالعربي",
+            "{topic}",
+            "{topic} ويكيبيديا",
+            "معلومات عن {topic}",
+            "{topic} الموقع الرسمي",
         ]
     else:
         templates = [
-            "what is {topic}",
-            "{topic} explained",
-            "{topic} tutorial",
-            "{topic} protocol",
-            "{topic} examples",
-            "how does {topic} work",
-            "{topic} types",
-            "{topic} RFC",
+            "{topic}",
+            "{topic} overview",
+            "{topic} wikipedia",
+            "about {topic}",
         ]
     
-    queries = [t.format(topic=topic) for t in templates]
-    logger.debug(f"Generated {len(queries)} queries for topic '{topic}' (script: {script})")
-    return queries
+    queries = [t.format(topic=clean_topic) for t in templates]
+    seen = set()
+    deduped = [q for q in queries if not (q in seen or seen.add(q))]
+    logger.debug(f"Generated {len(deduped)} queries for topic '{clean_topic}' (script: {script})")
+    return deduped
 
 
 def extract_domain(url: str) -> str:
@@ -78,8 +73,7 @@ def extract_domain(url: str) -> str:
 
 def target_sources(topic: str, queries: list[str], config: Config | None = None) -> list[str]:
     """
-    Execute search queries via DuckDuckGo using a real browser (Playwright) 
-    and collect deduplicated URLs.
+    Execute search queries via resilient HTTP search and collect deduplicated URLs.
 
     Args:
         topic:   The topic being searched.
@@ -89,9 +83,10 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
     Returns:
         A list of deduplicated URLs found across all queries.
     """
-    from playwright.sync_api import sync_playwright
     import urllib.parse
     import time
+    import httpx
+    from bs4 import BeautifulSoup
     
     cfg = config or get_config()
     max_urls = cfg.crawler.max_urls_per_query
@@ -100,61 +95,62 @@ def target_sources(topic: str, queries: list[str], config: Config | None = None)
     collected_urls: set[str] = set()
     logger.info(f"Targeting sources for '{topic}' using {len(queries)} queries...")
 
-    import sys
-    import asyncio
-    
-    if sys.platform == 'win32':
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
+    }
 
-    with sync_playwright() as p:
-        # headless=True so the actual Chrome doesn't pop up!
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(
-            viewport={"width": 1280, "height": 720},
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
-        page = context.new_page()
-        
-        for q in queries:
-            logger.debug(f"Executing search in browser: '{q}'")
-            try:
-                # Use the standard DuckDuckGo search page
-                encoded_q = urllib.parse.quote_plus(q)
-                search_url = f"https://duckduckgo.com/?q={encoded_q}"
+    # Execute queries using resilient HTTP endpoints
+    for q in queries:
+        logger.debug(f"Executing web search for query: '{q}'")
+        try:
+            r = httpx.post(
+                "https://html.duckduckgo.com/html/",
+                data={"q": q},
+                headers=headers,
+                timeout=10.0,
+                follow_redirects=True,
+            )
+            
+            if r.status_code == 200 and r.text:
+                soup = BeautifulSoup(r.text, "html.parser")
+                added_for_q = 0
                 
-                page.goto(search_url, wait_until="domcontentloaded")
-                # Wait for search results to appear
-                page.wait_for_selector('a[data-testid="result-title-a"]', timeout=10000)
-                time.sleep(1) # brief pause to let user see it
-                
-                # Extract links from the search results
-                links = page.query_selector_all('a[data-testid="result-title-a"]')
-                
-                added_count = 0
-                for link in links:
-                    if added_count >= max_urls:
+                # Check both direct url elements and result title links
+                for a in soup.select("a.result__url, .result__title a"):
+                    if added_for_q >= max_urls:
                         break
-                        
-                    href = link.get_attribute("href")
-                    if not href or href.startswith("/") or "duckduckgo.com" in href:
+                    href = a.get("href", "")
+                    actual_url = ""
+                    
+                    if "/l/?uddg=" in href:
+                        try:
+                            actual_url = urllib.parse.unquote(href.split("/l/?uddg=")[1].split("&")[0])
+                        except Exception:
+                            continue
+                    elif href.startswith("http") and "duckduckgo.com" not in href:
+                        actual_url = href
+                    
+                    if not actual_url or actual_url in collected_urls:
                         continue
                         
-                    actual_url = href
                     domain = extract_domain(actual_url)
-                    
+                    if not domain or "duckduckgo.com" in domain:
+                        continue
+                        
                     if trusted_only and not cfg.is_trusted_domain(domain):
                         continue
                         
                     collected_urls.add(actual_url)
-                    added_count += 1
-                
-                # Sleep briefly based on config
+                    added_for_q += 1
+
+            # Brief courtesy delay between search queries
+            if cfg.crawler.crawl_delay_seconds > 0:
                 time.sleep(cfg.crawler.crawl_delay_seconds)
                 
-            except Exception as e:
-                logger.warning(f"Browser search failed for query '{q}': {e}")
-        
-        browser.close()
+        except Exception as e:
+            logger.warning(f"Search query '{q}' encountered network warning: {e}")
 
     urls = list(collected_urls)
     logger.info(f"Targeting complete: {len(urls)} unique URLs found for '{topic}'")

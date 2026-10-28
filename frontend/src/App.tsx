@@ -141,6 +141,13 @@ function App() {
   const [maxDepth, setMaxDepth] = useState(3);
   const [maxSources, setMaxSources] = useState(10);
   
+  // Live crawler state for display
+  const [currentUrl, setCurrentUrl] = useState<string>('');
+  const [currentTitle, setCurrentTitle] = useState<string>('');
+  const [currentDomain, setCurrentDomain] = useState<string>('');
+  const [currentSummary, setCurrentSummary] = useState<string>('');
+  const [currentScore, setCurrentScore] = useState<number>(0);
+  
 
   const [browserHeight, setBrowserHeight] = useState(350);
   const isDragging = useRef(false);
@@ -187,17 +194,35 @@ function App() {
           const res = await axios.get(`${API_BASE}/session/${sessionId}`);
           if (res.data) {
             setStats({
-              sources: res.data.sources_total || 0,
-              topics: res.data.topics || 0
+              sources: res.data.sources_total ?? 0,
+              topics: res.data.topics ?? 0
             });
+            if (res.data.current_url) setCurrentUrl(res.data.current_url);
+            if (res.data.current_title) setCurrentTitle(res.data.current_title);
+            if (res.data.current_domain) setCurrentDomain(res.data.current_domain);
+            if (res.data.current_summary) setCurrentSummary(res.data.current_summary);
+            if (typeof res.data.current_score === 'number') setCurrentScore(res.data.current_score);
+
+            if (res.data.live_logs && Array.isArray(res.data.live_logs) && res.data.live_logs.length > 0) {
+              setLogs(prev => {
+                const existing = new Set(prev.map(l => l.time + l.message));
+                const newEntries = res.data.live_logs.filter((l: LogEntry) => !existing.has(l.time + l.message));
+                return newEntries.length > 0 ? [...prev, ...newEntries] : prev;
+              });
+            }
+
+            if (res.data.status === 'complete') {
+              setIsRunning(false);
+              addLog('success', lang === 'ar' ? 'اكتملت عملية الزحف واستخراج المعرفة بنجاح!' : 'Crawl process completed successfully!');
+            }
           }
         } catch (err) {
           console.error("Polling error", err);
         }
-      }, 3000) as unknown as number;
+      }, 2000) as unknown as number;
     }
     return () => clearInterval(pollInterval);
-  }, [isRunning, sessionId]);
+  }, [isRunning, sessionId, lang]);
 
   const addLog = (type: 'info'|'success'|'error'|'sys', message: string) => {
     setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type, message }]);
@@ -211,6 +236,11 @@ function App() {
     
     setIsRunning(true);
     setStats({ sources: 0, topics: 0 });
+    setCurrentUrl('');
+    setCurrentTitle('');
+    setCurrentDomain('');
+    setCurrentSummary('');
+    setCurrentScore(0);
     addLog('sys', `${loc.connecting} ${searchQuery}...`);
     
     try {
@@ -443,20 +473,65 @@ function App() {
                   </div>
                   <div className="browser-url-bar">
                     <Globe size={14} />
-                    <span>{isRunning ? `${loc.browserSearching}: ${searchQuery}...` : loc.browserWait}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {currentUrl || (isRunning ? `${loc.browserSearching}: ${searchQuery}...` : loc.browserWait)}
+                    </span>
                   </div>
-                  <button className="btn-icon" style={{ width: '28px', height: '28px', border: 'none' }}>
-                    <RefreshCw size={14} />
+                  <button className="btn-icon" style={{ width: '28px', height: '28px', border: 'none' }} onClick={() => { if (sessionId) axios.get(`${API_BASE}/session/${sessionId}`); }}>
+                    <RefreshCw size={14} className={isRunning ? 'spin-animation' : ''} />
                   </button>
                 </div>
-                <div className="browser-content">
-                  {isRunning ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', color: 'var(--text-secondary)' }}>
-                      <Globe size={64} className="pulse-animation" style={{ opacity: 0.5 }} />
+                <div className="browser-content" style={{ padding: currentTitle || currentUrl ? '18px 24px' : '0', overflowY: 'auto' }}>
+                  {currentTitle || currentUrl ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+                      {/* Meta header bar */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--panel-border)', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '0.78rem', padding: '3px 8px', borderRadius: '6px', background: 'rgba(37, 99, 235, 0.15)', color: '#60a5fa', fontWeight: 700 }}>
+                            {currentDomain || 'WEB SOURCE'}
+                          </span>
+                          <span style={{ fontSize: '0.78rem', color: '#10b981', fontWeight: 600 }}>
+                            ● HTTP 200 OK
+                          </span>
+                        </div>
+                        {currentScore > 0 && (
+                          <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', fontWeight: 700 }}>
+                            جودة المحتوى: {Math.round(currentScore * 100)}%
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Web Page Title */}
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                        {currentTitle || currentUrl}
+                      </h3>
+
+                      {/* Extracted Summary & Core Knowledge */}
+                      <div style={{ padding: '14px', borderRadius: '12px', background: 'var(--card-sub-bg)', border: '1px solid var(--card-sub-border)', fontSize: '0.92rem', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+                        <p style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px', fontSize: '0.92rem' }}>
+                          {lang === 'ar' ? 'المعرفة المستخلصة والملخص:' : 'Extracted Knowledge & Summary:'}
+                        </p>
+                        <p>{currentSummary || (lang === 'ar' ? 'تم استخراج النصوص وتحليل الكلمات المفتاحية بنجاح...' : 'Text and core concepts extracted successfully...')}</p>
+                      </div>
+
+                      {/* Source Link */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                        <a href={currentUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-color)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%' }}>
+                          ↗ {currentUrl}
+                        </a>
+                        <span style={{ color: isRunning ? '#60a5fa' : '#10b981', fontWeight: 600 }}>
+                          {isRunning ? (lang === 'ar' ? 'جاري الاستكشاف...' : 'Active Crawler') : (lang === 'ar' ? 'تم الفهرسة' : 'Indexed')}
+                        </span>
+                      </div>
+                    </div>
+                  ) : isRunning ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: 'var(--text-secondary)' }}>
+                      <Globe size={64} className="pulse-animation" style={{ opacity: 0.6, color: 'var(--accent-color)' }} />
                       <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>{loc.browserExploring}</p>
+                      <span style={{ fontSize: '0.85rem', opacity: 0.7 }}>{searchQuery ? `جاري تمشيط محركات البحث عن: ${searchQuery}` : ''}</span>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', color: 'var(--panel-border)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: 'var(--panel-border)' }}>
                       <Globe size={64} />
                       <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>{loc.browserStopped}</p>
                     </div>

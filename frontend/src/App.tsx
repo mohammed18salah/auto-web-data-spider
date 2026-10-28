@@ -342,6 +342,26 @@ function App() {
     setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type, message }]);
   };
 
+  const formatDateTime = (dateStr?: string | null) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const isPm = hours >= 12;
+      hours = hours % 12 || 12;
+      const hh = String(hours).padStart(2, '0');
+      const period = lang === 'ar' ? (isPm ? 'م' : 'ص') : (isPm ? 'PM' : 'AM');
+      return `${yyyy}/${mm}/${dd} • ${hh}:${minutes} ${period}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
   const getSystemStatus = () => {
     const isTargetMet = maxSources > 0 && stats.sources >= maxSources && stats.sources > 0;
     if (isRunning && !isTargetMet) {
@@ -1292,8 +1312,24 @@ function App() {
                                 )}
                               </div>
                               {source.crawled_at && (
-                                <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                                  {new Date(source.crawled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                <span
+                                  dir="ltr"
+                                  style={{
+                                    fontSize: '0.78rem',
+                                    color: 'var(--text-secondary)',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    direction: 'ltr',
+                                    unicodeBidi: 'plaintext',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    padding: '3px 8px',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--card-sub-border)'
+                                  }}
+                                >
+                                  <Clock size={12} style={{ opacity: 0.8 }} />
+                                  <span>{formatDateTime(source.crawled_at)}</span>
                                 </span>
                               )}
                             </div>

@@ -67,6 +67,7 @@ app.add_middleware(
 
 # ── Active Crawlers Registry for Graceful Shutdown ─────────────────────────────
 active_crawlers: Dict[str, CrawlerOrchestrator] = {}
+completed_crawlers: Dict[str, dict] = {}
 crawler_lock = Lock()
 
 
@@ -94,7 +95,18 @@ def background_crawl_task(session_id: str, cfg):
         logging.error(f"Error in background crawl for session {session_id}: {e}")
     finally:
         with crawler_lock:
-            active_crawlers.pop(session_id, None)
+            orch = active_crawlers.pop(session_id, None)
+            if orch:
+                completed_crawlers[session_id] = {
+                    "status": "paused" if orch.is_stopped else "complete",
+                    "stop_reason": orch.stop_reason or ("تم الإيقاف يدوياً" if orch.is_stopped else "اكتمل الزحف بنجاح"),
+                    "logs": list(orch.live_logs),
+                    "current_url": orch.current_url,
+                    "current_title": orch.current_title,
+                    "current_domain": orch.current_domain,
+                    "current_summary": orch.current_summary,
+                    "current_score": orch.current_score,
+                }
 
 
 @app.get("/")
@@ -167,8 +179,10 @@ def get_session_info(session_id: str):
         orch = active_crawlers.get(session_id)
         if orch:
             telemetry = orch.get_live_state()
+            status_val = "complete" if telemetry.get("is_finished") else "running"
             stats.update({
-                "status": "running",
+                "status": status_val,
+                "stop_reason": telemetry.get("stop_reason", ""),
                 "current_url": telemetry.get("current_url", ""),
                 "current_title": telemetry.get("current_title", ""),
                 "current_domain": telemetry.get("current_domain", ""),
@@ -176,10 +190,31 @@ def get_session_info(session_id: str):
                 "current_score": telemetry.get("current_score", 0.0),
                 "live_logs": telemetry.get("logs", []),
             })
+        elif session_id in completed_crawlers:
+            hist = completed_crawlers[session_id]
+            stats.update({
+                "status": hist["status"],
+                "stop_reason": hist["stop_reason"],
+                "current_url": hist.get("current_url", ""),
+                "current_title": hist.get("current_title", ""),
+                "current_domain": hist.get("current_domain", ""),
+                "current_summary": hist.get("current_summary", ""),
+                "current_score": hist.get("current_score", 0.0),
+                "live_logs": hist.get("logs", []),
+            })
         else:
+            db_status = stats.get("status", "complete")
+            if db_status == "running":
+                db_status = "complete" if stats.get("sources_total", 0) > 0 else "paused"
+                update_session_status(session_id, db_status)
+                stats["status"] = db_status
+
+            default_reason = "اكتملت الجلسة وتمت أرشفة البيانات بنجاح" if db_status == "complete" else "تم إيقاف الجلسة"
             if stats.get("latest_sources"):
                 top_s = stats["latest_sources"][0]
                 stats.update({
+                    "status": db_status,
+                    "stop_reason": default_reason,
                     "current_url": top_s["url"],
                     "current_title": top_s["title"],
                     "current_domain": top_s["domain"],
@@ -189,6 +224,8 @@ def get_session_info(session_id: str):
                 })
             else:
                 stats.update({
+                    "status": db_status,
+                    "stop_reason": default_reason,
                     "current_url": "",
                     "current_title": "",
                     "current_domain": "",

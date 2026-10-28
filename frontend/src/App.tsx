@@ -51,6 +51,8 @@ const t = {
     systemStatus: 'حالة النظام',
     statusRunning: 'قيد العمل...',
     statusStopped: 'متوقف',
+    statusCompleted: 'اكتملت المهمة ✅',
+    stopReasonLabel: 'سبب الانتهاء / التوقف:',
     sourcesAnalyzed: 'المصادر المحللة',
     settingsAndNumbers: 'هنا الإعدادات والأرقام',
     searchDepth: 'عمق البحث',
@@ -113,6 +115,8 @@ const t = {
     systemStatus: 'System Status',
     statusRunning: 'Running...',
     statusStopped: 'Stopped',
+    statusCompleted: 'Completed ✅',
+    stopReasonLabel: 'Stop / Completion Reason:',
     sourcesAnalyzed: 'Sources Analyzed',
     settingsAndNumbers: 'Settings & Parameters',
     searchDepth: 'Search Depth',
@@ -198,6 +202,8 @@ function App() {
   const loc = t[lang];
 
   const [historyList, setHistoryList] = useState<SessionHistoryItem[]>([]);
+  const [stopReason, setStopReason] = useState<string>('');
+  const [crawlFinished, setCrawlFinished] = useState<boolean>(false);
 
   // Detailed view & export modal state
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -239,8 +245,6 @@ function App() {
         const s = (elapsed % 60).toString().padStart(2, '0');
         setElapsedTime(`${h}:${m}:${s}`);
       }, 1000);
-    } else {
-      setElapsedTime('00:00:00');
     }
     return () => clearInterval(interval);
   }, [isRunning]);
@@ -270,9 +274,17 @@ function App() {
               });
             }
 
-            if (res.data.status === 'complete') {
+            if (res.data.status === 'complete' || res.data.status === 'paused') {
               setIsRunning(false);
-              addLog('success', lang === 'ar' ? 'اكتملت عملية الزحف واستخراج المعرفة بنجاح!' : 'Crawl process completed successfully!');
+              const isComp = res.data.status === 'complete';
+              const reason = res.data.stop_reason || (isComp ? (lang === 'ar' ? 'اكتملت عملية الزحف بنجاح.' : 'Crawl completed successfully.') : (lang === 'ar' ? 'تم إيقاف عملية الزحف.' : 'Crawl paused.'));
+              setStopReason(reason);
+              setCrawlFinished(isComp);
+              setLogs(prev => {
+                const finishMsg = `🏁 ${loc.stopReasonLabel} ${reason}`;
+                if (prev.some(l => l.message.includes(loc.stopReasonLabel) || l.message === finishMsg)) return prev;
+                return [...prev, { time: new Date().toLocaleTimeString(), type: isComp ? 'success' : 'info', message: finishMsg }];
+              });
             }
           }
         } catch (err) {
@@ -294,6 +306,9 @@ function App() {
     }
     
     setIsRunning(true);
+    setElapsedTime('00:00:00');
+    setStopReason('');
+    setCrawlFinished(false);
     setStats({ sources: 0, topics: 0 });
     setCurrentUrl('');
     setCurrentTitle('');
@@ -332,7 +347,10 @@ function App() {
       console.warn("Stop request warning:", err);
     } finally {
       setIsRunning(false);
-      addLog('info', loc.crawlStopped);
+      const userReason = lang === 'ar' ? 'تم إيقاف عملية الزحف يدوياً بواسطة المستخدم.' : 'Crawl stopped manually by user.';
+      setStopReason(userReason);
+      setCrawlFinished(false);
+      addLog('info', `⏸️ ${userReason}`);
     }
   };
 
@@ -515,9 +533,27 @@ function App() {
 
                 <div className="stat-card">
                   <span className="stat-label">{loc.systemStatus}</span>
-                  <span className="stat-value" style={{ fontSize: '1.2rem', color: isRunning ? 'var(--success-color)' : 'var(--text-secondary)' }}>
-                    {isRunning ? loc.statusRunning : loc.statusStopped}
+                  <span className="stat-value" style={{ 
+                    fontSize: '1.2rem', 
+                    color: isRunning ? 'var(--success-color)' : (crawlFinished ? '#10b981' : 'var(--text-secondary)') 
+                  }}>
+                    {isRunning ? loc.statusRunning : (crawlFinished ? loc.statusCompleted : loc.statusStopped)}
                   </span>
+                  {stopReason && !isRunning && (
+                    <div style={{
+                      marginTop: '8px',
+                      fontSize: '0.78rem',
+                      lineHeight: '1.4',
+                      color: crawlFinished ? '#34d399' : '#93c5fd',
+                      background: crawlFinished ? 'rgba(16, 185, 129, 0.12)' : 'rgba(59, 130, 246, 0.12)',
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      border: `1px solid ${crawlFinished ? 'rgba(16, 185, 129, 0.25)' : 'rgba(59, 130, 246, 0.25)'}`,
+                      fontWeight: 600
+                    }}>
+                      {stopReason}
+                    </div>
+                  )}
                 </div>
                 <div className="stat-card">
                   <span className="stat-label">{loc.sourcesAnalyzed}</span>
@@ -578,14 +614,43 @@ function App() {
                   <div className="browser-url-bar">
                     <Globe size={14} />
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {currentUrl || (isRunning ? `${loc.browserSearching}: ${searchQuery}...` : loc.browserWait)}
+                      {currentUrl || (isRunning ? `${loc.browserSearching}: ${searchQuery}...` : (stopReason ? `[${stopReason}]` : loc.browserWait))}
                     </span>
                   </div>
                   <button className="btn-icon" style={{ width: '28px', height: '28px', border: 'none' }} onClick={() => { if (sessionId) axios.get(`${API_BASE}/session/${sessionId}`); }}>
                     <RefreshCw size={14} className={isRunning ? 'spin-animation' : ''} />
                   </button>
                 </div>
-                <div className="browser-content" style={{ padding: currentTitle || currentUrl ? '18px 24px' : '0', overflowY: 'auto' }}>
+                <div className="browser-content" style={{ padding: currentTitle || currentUrl || (stopReason && !isRunning) ? '18px 24px' : '0', overflowY: 'auto' }}>
+                  {/* Stop / Completion Notification Banner */}
+                  {stopReason && !isRunning && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px 18px',
+                      borderRadius: '10px',
+                      background: crawlFinished ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                      border: `1px solid ${crawlFinished ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+                      color: crawlFinished ? '#34d399' : '#f87171',
+                      marginBottom: '16px',
+                      fontSize: '0.9rem',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                    }}>
+                      <span style={{ fontSize: '1.4rem' }}>{crawlFinished ? '🎯' : '🛑'}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>
+                          {crawlFinished 
+                            ? (lang === 'ar' ? 'اكتملت مهمة الزحف بنجاح ✅' : 'Crawl Completed Successfully ✅') 
+                            : (lang === 'ar' ? 'توقفت عملية الزحف 🛑' : 'Crawl Stopped 🛑')}
+                        </span>
+                        <span style={{ fontSize: '0.85rem', opacity: 0.95, color: crawlFinished ? '#a7f3d0' : '#fca5a5' }}>
+                          {stopReason}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   {currentTitle || currentUrl ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
                       {/* Meta header bar */}
@@ -635,9 +700,16 @@ function App() {
                       <span style={{ fontSize: '0.85rem', opacity: 0.7 }}>{searchQuery ? `جاري تمشيط محركات البحث عن: ${searchQuery}` : ''}</span>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: 'var(--panel-border)' }}>
-                      <Globe size={64} />
-                      <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>{loc.browserStopped}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>
+                      <Globe size={64} style={{ color: crawlFinished ? '#10b981' : 'var(--panel-border)' }} />
+                      <p style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {crawlFinished ? loc.statusCompleted : loc.browserStopped}
+                      </p>
+                      {stopReason && (
+                        <p style={{ fontSize: '0.9rem', color: '#93c5fd', maxWidth: '420px', background: 'rgba(59, 130, 246, 0.1)', padding: '8px 14px', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                          {stopReason}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>

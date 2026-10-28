@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { 
-  Sun, Moon, Settings, Database, Clock, 
-  Play, Square, Save, Download, Globe, 
+import {
+  Sun, Moon, Settings, Database, Clock,
+  Play, Square, Save, Download, Globe,
   Terminal, Activity, RefreshCw, Home, Languages, Trash2,
   Eye, X, ExternalLink, AlertCircle, Info, AlertTriangle, Layers, Hash,
   HelpCircle, CheckCircle2
@@ -53,32 +53,31 @@ const t = {
     statusRunning: 'قيد العمل...',
     statusStopped: 'متوقف',
     statusCompleted: 'اكتملت المهمة',
-    statusIdle: 'جاهز للبدء',
+    statusIdle: 'جاهز للاستخدام',
     stopReasonLabel: 'سبب الانتهاء / التوقف:',
     sourcesAnalyzed: 'المصادر المحللة',
-    sourcesTarget: 'المصادر المحللة والهدف',
     settingsAndNumbers: 'هنا الإعدادات والأرقام',
-    searchDepth: 'عمق البحث (Search Depth)',
-    maxSources: 'الحد الأقصى للمصادر (Max Sources)',
-    depthPlaceholder: 'مثال: 3',
-    sourcesPlaceholder: 'مثال: 15',
-    presets: 'خيارات سريعة:',
-    recommendedValue: 'القيمة المثالية الموصى بها',
-    whatIfHugeNumber: 'ماذا لو وضعت رقماً ضخماً؟',
+    searchDepth: 'عمق البحث',
+    maxSources: 'الحد الأقصى للمصادر',
     detailsAndWarnings: 'تفاصيل وتحذيرات',
-    depthHoverTitle: 'دليل عمق البحث (Search Depth)',
-    depthBenefit: 'يحدد مستويات تشعب الروابط واستكشاف صفحات الويب انطلاقاً من نتائج البحث الأولى:',
-    depthL1: 'المستوى 1: صفحات نتائج البحث المباشرة عن الموضوع.',
-    depthL2: 'المستوى 2: الروابط والصفحات الموجودة داخل النتائج الأولى.',
-    depthL3: 'المستوى 3+: روابط متفرعة شجرياً لأعماق أكبر داخل المواقع.',
-    depthRecommendedDesc: 'من 1 إلى 3: يوفر توازناً مثالياً بين سرعة الجمع ودقة المعلومات دون تشتت.',
-    depthHugeWarnDesc: 'وضع رقم ضخم (4 أو 5+): سيتضاعف عدد الروابط بشكل أسي لمئات الآلاف، مما يجعل الزحف بطيئاً جداً (قد يستغرق ساعات)، وقد يبتعد المحتوى عن صلب الموضوع الرئيسي ويستهلك الذاكرة.',
-    depthLiveWarn: 'تنبيه: عمق كبير (4+) قد يستغرق وقتاً طويلاً ويشتت النتائج عن صلب الموضوع.',
-    sourcesHoverTitle: 'دليل الحد الأقصى للمصادر (Max Sources)',
-    sourcesBenefit: 'السقف الإجمالي لعدد المواقع والمقالات التي يحللها الروبوت ويستخرج خلاصاتها قبل التوقف تلقائياً.',
-    sourcesRecommendedDesc: 'من 10 إلى 30 للاستعلام السريع، وحتى 50 للأبحاث الشاملة.',
-    sourcesHugeWarnDesc: 'وضع رقم ضخم (أكثر من 50 أو 100+): ستستمر الجلسة لوقت أطول، وسيتم استهلاك حجم أكبر من الإنترنت والذاكرة، وقد تتعرض بعض الاستعلامات لحظر مؤقت (Rate Limit) من بعض محركات البحث.',
-    sourcesLiveWarn: 'تنبيه: أكثر من 50 مصدراً قد يستهلك وقتاً وباندويث عالي ويزيد احتمالية تقييد الطلبات.',
+    depthHoverTitle: 'دليل عمق البحث',
+    depthBenefit: 'يحدد عدد المستويات التفرعية التي سيتنقل فيها الزاحف انطلاقاً من روابط نتائج البحث الأولى:',
+    depthL1: 'المستوى 1: صفحات نتائج البحث المباشرة فقط (أسرع وأدق نتائج).',
+    depthL2: 'المستوى 2: تتبع الروابط المكتشفة داخل صفحات المستوى الأول.',
+    depthL3: 'المستوى 3+: روابط تشعبية إضافية لتعمق شامل داخل المواقع.',
+    recommendedValue: 'القيمة المثالية الموصى بها',
+    depthRecommendedDesc: 'من 1 إلى 3: يوفر توازناً مثالياً بين سرعة الجمع ودقة المعلومات دون تشتيت.',
+    whatIfHugeNumber: 'ماذا لو وضعت رقماً ضخماً؟',
+    depthHugeWarnDesc: 'وضع رقم عمق كبير (4 أو أكثر) يضاعف عدد الروابط بشكل أُسي لعشرات الآلاف من الصفحات، مما قد يستغرق ساعات طويلة وربما يبتعد عن صلب الموضوع الرئيسي.',
+    depthPlaceholder: 'مثال: 3',
+    presets: 'خيارات جاهزة:',
+    depthLiveWarn: 'تنبيه: عمق البحث مرتفع (4+). قد يستغرق الزحف وقتاً طويلاً لتتبع كافة الروابط المتشعبة.',
+    sourcesHoverTitle: 'دليل الحد الأقصى للمصادر',
+    sourcesBenefit: 'يحدد العدد الإجمالي الأقصى للصفحات والمواقع التي سيقوم الزاحف باستخراج محتواها وتحليلها قبل إنهاء المهمة وحفظ البيانات.',
+    sourcesRecommendedDesc: 'من 10 إلى 50: مثالي لإنجاز سريع ودقيق يمنحك خلاصة مركزة في دقائق معدودة.',
+    sourcesHugeWarnDesc: 'وضع رقم ضخم (100 فما فوق) سيجعل العملية تستمر لفترة أطول وتستهلك موارد الذاكرة والشبكة، وقد يعرضك لحظر مؤقت من بعض خوادم المواقع بسبب كثرة الطلبات.',
+    sourcesPlaceholder: 'مثال: 10',
+    sourcesLiveWarn: 'تنبيه: تم تحديد عدد مصادر كبير. ستستغرق العملية وقتاً أطول لإنهاء استخراج وتحليل كل صفحة.',
     start: 'البدء',
     stop: 'إيقاف العمل',
     save: 'الحفظ',
@@ -138,32 +137,31 @@ const t = {
     statusRunning: 'Running...',
     statusStopped: 'Stopped',
     statusCompleted: 'Completed',
-    statusIdle: 'Ready to Start',
+    statusIdle: 'Ready for search',
     stopReasonLabel: 'Stop / Completion Reason:',
     sourcesAnalyzed: 'Sources Analyzed',
-    sourcesTarget: 'Analyzed Sources & Target',
     settingsAndNumbers: 'Settings & Parameters',
     searchDepth: 'Search Depth',
     maxSources: 'Max Sources',
-    depthPlaceholder: 'e.g. 3',
-    sourcesPlaceholder: 'e.g. 15',
-    presets: 'Quick Presets:',
-    recommendedValue: 'Recommended Value',
-    whatIfHugeNumber: 'What happens if you enter a huge number?',
     detailsAndWarnings: 'Details & Warnings',
     depthHoverTitle: 'Search Depth Guide',
-    depthBenefit: 'Determines the branching levels of links to explore starting from primary search results:',
-    depthL1: 'Level 1: Direct primary search result pages.',
-    depthL2: 'Level 2: Links found within primary pages.',
-    depthL3: 'Level 3+: Deeper nested links explored recursively.',
-    depthRecommendedDesc: '1 to 3: Best balance between lightning crawl speed and high precision.',
-    depthHugeWarnDesc: 'Setting a huge number (4 or 5+): Exponential link growth into hundreds of thousands of pages, causing massive slowdown, topic drift away from core subject, and heavy memory usage.',
-    depthLiveWarn: 'Warning: Deep depth (4+) can cause extreme slowdown and topic drift.',
+    depthBenefit: 'Specifies the number of nested link levels the crawler navigates starting from initial search results:',
+    depthL1: 'Level 1: Direct search result pages only (fastest & most focused).',
+    depthL2: 'Level 2: Internal links found within Level 1 pages.',
+    depthL3: 'Level 3+: Deeper nested links for exhaustive web exploration.',
+    recommendedValue: 'Recommended Value',
+    depthRecommendedDesc: '1 to 3: Optimal balance between crawling speed and topical accuracy.',
+    whatIfHugeNumber: 'What if you set a huge number?',
+    depthHugeWarnDesc: 'Setting depth to 4+ exponentially multiplies links into tens of thousands of pages, taking hours and potentially drifting away from the core topic.',
+    depthPlaceholder: 'e.g. 3',
+    presets: 'Presets:',
+    depthLiveWarn: 'Notice: High depth (4+). Crawling will take significantly longer to trace all nested links.',
     sourcesHoverTitle: 'Max Sources Guide',
-    sourcesBenefit: 'The ceiling of web pages and articles the bot reads, analyzes, and indexes before stopping automatically.',
-    sourcesRecommendedDesc: '10 to 30 for quick insight, up to 50 for in-depth research.',
-    sourcesHugeWarnDesc: 'Setting a huge number (over 50 or 100+): Prolongs the session significantly, consumes high network bandwidth, and risks temporary IP rate limits from search engines.',
-    sourcesLiveWarn: 'Warning: Over 50 sources consumes high bandwidth and may risk rate limits.',
+    sourcesBenefit: 'Defines the total maximum number of web pages to extract, analyze, and index before completing the task and saving records.',
+    sourcesRecommendedDesc: '10 to 50: Ideal for fast, comprehensive extraction providing clear insights in minutes.',
+    sourcesHugeWarnDesc: 'Setting a huge number (100+) will keep the crawler running much longer, increase memory/network usage, and might hit rate limits on some servers.',
+    sourcesPlaceholder: 'e.g. 10',
+    sourcesLiveWarn: 'Notice: Large source target selected. The process will take longer to fetch and analyze each page.',
     start: 'Start',
     stop: 'Stop',
     save: 'Save',
@@ -206,31 +204,6 @@ const t = {
     averageQuality: 'Avg Quality',
     wordsCount: 'words',
     viewOriginal: 'Open Link',
-    settingsTitle: 'General Settings',
-    generalSettings: 'General Settings',
-    apiKeys: 'API Keys',
-    advanced: 'Advanced Options',
-    saveSettings: 'Save Settings',
-    noData: 'No previous data available yet.',
-    sessionID: 'Session ID',
-    topic: 'Topic',
-    statusCol: 'Status',
-    actions: 'Actions',
-    deleteConfirm: 'Are you sure you want to delete this session and all its records?',
-    deleteSuccess: 'Session deleted successfully.',
-    exportSuccess: 'Data exported and downloaded successfully!',
-    saveSuccess: 'Session saved and updated successfully.',
-    viewDetails: 'View Details',
-    downloadData: 'Download JSON',
-    deleteSession: 'Delete Session',
-    sessionDetailsTitle: 'Crawl Session Details & Data Explorer',
-    allCrawledSources: 'Indexed Sources & Web Pages',
-    noSourcesFound: 'No sources indexed for this session yet.',
-    conceptsExtracted: 'Extracted Terms',
-    topicsDiscovered: 'Discovered Topics',
-    averageQuality: 'Avg Quality',
-    wordsCount: 'words',
-    viewOriginal: 'Open Link',
     downloading: 'Downloading...',
     downloadFullJson: 'Download Complete JSON',
     close: 'Close',
@@ -243,11 +216,11 @@ function App() {
   const [lang, setLang] = useState<Lang>('ar');
   const [activeTab, setActiveTab] = useState<'log' | 'terminal'>('log');
   const [page, setPage] = useState<Page>('home');
-  
+
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedTime, setElapsedTime] = useState('00:00:00');
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([
     { time: new Date().toLocaleTimeString(), type: 'info', message: 'System initialized.' }
@@ -255,14 +228,14 @@ function App() {
   const [stats, setStats] = useState({ sources: 0, topics: 0 });
   const [maxDepth, setMaxDepth] = useState(3);
   const [maxSources, setMaxSources] = useState(10);
-  
+
   // Live crawler state for display
   const [currentUrl, setCurrentUrl] = useState<string>('');
   const [currentTitle, setCurrentTitle] = useState<string>('');
   const [currentDomain, setCurrentDomain] = useState<string>('');
   const [currentSummary, setCurrentSummary] = useState<string>('');
   const [currentScore, setCurrentScore] = useState<number>(0);
-  
+
 
   const [browserHeight, setBrowserHeight] = useState(350);
   const isDragging = useRef(false);
@@ -344,12 +317,10 @@ function App() {
               });
             }
 
-            const sourcesNow = res.data.sources_total ?? 0;
-            const targetMet = maxSources > 0 && sourcesNow >= maxSources;
-            if (res.data.status === 'complete' || res.data.status === 'paused' || targetMet) {
+            if (res.data.status === 'complete' || res.data.status === 'paused') {
               setIsRunning(false);
-              const isComp = res.data.status === 'complete' || targetMet;
-              const reason = res.data.stop_reason || (isComp ? (lang === 'ar' ? `اكتملت المهمة بنجاح مع جمع (${sourcesNow}) مصادر.` : `Crawl completed successfully (${sourcesNow} sources).`) : (lang === 'ar' ? 'تم إيقاف عملية الزحف.' : 'Crawl paused.'));
+              const isComp = res.data.status === 'complete';
+              const reason = res.data.stop_reason || (isComp ? (lang === 'ar' ? 'اكتملت عملية الزحف بنجاح.' : 'Crawl completed successfully.') : (lang === 'ar' ? 'تم إيقاف عملية الزحف.' : 'Crawl paused.'));
               setStopReason(reason);
               setCrawlFinished(isComp);
               setLogs(prev => {
@@ -365,9 +336,9 @@ function App() {
       }, 750) as unknown as number; // 750ms for lightning responsive UI
     }
     return () => clearInterval(pollInterval);
-  }, [isRunning, sessionId, lang, maxSources]);
+  }, [isRunning, sessionId, lang]);
 
-  const addLog = (type: 'info'|'success'|'error'|'sys', message: string) => {
+  const addLog = (type: 'info' | 'success' | 'error' | 'sys', message: string) => {
     setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type, message }]);
   };
 
@@ -410,7 +381,7 @@ function App() {
       addLog('error', loc.enterTopicError);
       return;
     }
-    
+
     setIsRunning(true);
     setElapsedTime('00:00:00');
     setStopReason('');
@@ -422,14 +393,16 @@ function App() {
     setCurrentSummary('');
     setCurrentScore(0);
     addLog('sys', `${loc.connecting} ${searchQuery}...`);
-    
+
     try {
+      const safeDepth = Math.max(1, Math.min(10, maxDepth || 3));
+      const safeSources = Math.max(1, Math.min(1000, maxSources || 10));
       const res = await axios.post(`${API_BASE}/crawl`, {
         topic: searchQuery,
-        max_depth: maxDepth,
-        max_sources: maxSources
+        max_depth: safeDepth,
+        max_sources: safeSources
       });
-      
+
       if (res.data.status === 'started') {
         setSessionId(res.data.session_id);
         addLog('success', `${loc.startSuccess} ${res.data.session_id}`);
@@ -456,6 +429,7 @@ function App() {
       const userReason = lang === 'ar' ? 'تم إيقاف عملية الزحف يدوياً بواسطة المستخدم.' : 'Crawl stopped manually by user.';
       setStopReason(userReason);
       setCrawlFinished(false);
+      addLog('info', `⏸️ ${userReason}`);
       addLog('info', userReason);
     }
   };
@@ -580,18 +554,18 @@ function App() {
 
         {/* Central Navigation Pills */}
         <nav className="header-nav">
-          <button 
-            className={`nav-pill ${page === 'home' ? 'active' : ''}`} 
+          <button
+            className={`nav-pill ${page === 'home' ? 'active' : ''}`}
             onClick={() => setPage('home')}
           >
-            <Home size={17} /> 
+            <Home size={17} />
             <span>{loc.home}</span>
           </button>
-          <button 
-            className={`nav-pill ${page === 'history' ? 'active' : ''}`} 
+          <button
+            className={`nav-pill ${page === 'history' ? 'active' : ''}`}
             onClick={() => setPage('history')}
           >
-            <Database size={17} /> 
+            <Database size={17} />
             <span>{loc.history}</span>
           </button>
         </nav>
@@ -625,11 +599,11 @@ function App() {
             <aside className="glass-panel sidebar">
               <div className="sidebar-section">
                 <h2 className="sidebar-title"><Settings size={20} /> {loc.buttonsBox}</h2>
-                
+
                 <div className="search-box">
-                  <input 
-                    type="text" 
-                    className="search-input" 
+                  <input
+                    type="text"
+                    className="search-input"
                     placeholder={loc.searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -652,7 +626,7 @@ function App() {
                           <span>{sysStatus.label}</span>
                         </span>
                       </div>
-                      
+
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>
                         {sysStatus.subtext}
                       </div>
@@ -678,39 +652,13 @@ function App() {
 
                 {/* SOURCES ANALYZED & TARGET CARD */}
                 <div className="stat-card">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span className="stat-label">{loc.sourcesTarget}</span>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: (stats.sources >= maxSources && stats.sources > 0) ? '#10b981' : 'var(--accent-color)' }}>
-                      {maxSources > 0 ? Math.min(100, Math.round((stats.sources / maxSources) * 100)) : 0}%
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
-                    <span className="stat-value" style={{ 
-                      fontSize: '1.6rem', 
-                      color: (stats.sources >= maxSources && stats.sources > 0) ? '#10b981' : 'var(--accent-color)' 
-                    }}>
-                      {stats.sources}
-                    </span>
-                    <span style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
-                      / {maxSources}
-                    </span>
-                  </div>
-                  <div className="stat-progress-container">
-                    <div className="stat-progress-bar">
-                      <div 
-                        className={`stat-progress-fill ${(stats.sources >= maxSources && stats.sources > 0) ? 'complete' : (isRunning ? '' : 'paused')}`}
-                        style={{ width: `${maxSources > 0 ? Math.min(100, Math.round((stats.sources / maxSources) * 100)) : 0}%` }}
-                      ></div>
-                    </div>
-                  </div>
+                  <span className="stat-label">{loc.sourcesAnalyzed}</span>
+                  <span className="stat-value">{stats.sources}</span>
                 </div>
               </div>
 
-              {/* SETTINGS AND NUMBERS (TYPABLE INPUTS WITH EXAMPLES, STEPPERS, PRESETS & RICH HOVER TOOLTIPS) */}
               <div className="sidebar-section">
                 <h2 className="sidebar-title"><Activity size={20} /> {loc.settingsAndNumbers}</h2>
-
-                {/* CONFIG 1: SEARCH DEPTH */}
                 <div className="config-box">
                   <div className="config-header">
                     <div className="config-header-left">
@@ -738,8 +686,8 @@ function App() {
                           <Layers size={16} />
                           <span>{loc.depthHoverTitle}</span>
                         </div>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           className="guide-close-btn"
                           onClick={() => setShowDepthGuide(false)}
                           title="إغلاق"
@@ -782,7 +730,7 @@ function App() {
                   {/* Typable number input + Stepper controls */}
                   <div className="config-input-row">
                     <div className="config-input-wrapper">
-                      <input 
+                      <input
                         type="number"
                         min="1"
                         max="10"
@@ -799,18 +747,18 @@ function App() {
                         disabled={isRunning}
                       />
                     </div>
-                    <button 
-                      type="button" 
-                      className="config-stepper-btn" 
+                    <button
+                      type="button"
+                      className="config-stepper-btn"
                       onClick={() => setMaxDepth(prev => Math.max(1, prev - 1))}
                       disabled={isRunning || maxDepth <= 1}
                       title="تقليل العمق (-1)"
                     >
                       -
                     </button>
-                    <button 
-                      type="button" 
-                      className="config-stepper-btn" 
+                    <button
+                      type="button"
+                      className="config-stepper-btn"
                       onClick={() => setMaxDepth(prev => Math.min(10, prev + 1))}
                       disabled={isRunning || maxDepth >= 10}
                       title="زيادة العمق (+1)"
@@ -820,13 +768,13 @@ function App() {
                   </div>
 
                   {/* Range slider synchronized */}
-                  <input 
-                    type="range" 
-                    min="1" 
-                    max="10" 
-                    value={Math.min(10, Math.max(1, maxDepth))} 
-                    onChange={(e) => setMaxDepth(Number(e.target.value))} 
-                    disabled={isRunning} 
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={Math.min(10, Math.max(1, maxDepth))}
+                    onChange={(e) => setMaxDepth(Number(e.target.value))}
+                    disabled={isRunning}
                   />
 
                   {/* Quick Preset Buttons */}
@@ -846,15 +794,13 @@ function App() {
                   </div>
 
                   {/* Live Warning if high number */}
-                  {maxDepth >= 4 && (
+                  {maxDepth >= 4 && Boolean(loc.depthLiveWarn) && (
                     <div className="config-live-warning">
                       <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
                       <span>{loc.depthLiveWarn}</span>
                     </div>
                   )}
                 </div>
-
-                {/* CONFIG 2: MAX SOURCES */}
                 <div className="config-box">
                   <div className="config-header">
                     <div className="config-header-left">
@@ -882,8 +828,8 @@ function App() {
                           <Hash size={16} />
                           <span>{loc.sourcesHoverTitle}</span>
                         </div>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           className="guide-close-btn"
                           onClick={() => setShowSourcesGuide(false)}
                           title="إغلاق"
@@ -921,7 +867,7 @@ function App() {
                   {/* Typable number input + Stepper controls */}
                   <div className="config-input-row">
                     <div className="config-input-wrapper">
-                      <input 
+                      <input
                         type="number"
                         min="1"
                         max="1000"
@@ -938,18 +884,18 @@ function App() {
                         disabled={isRunning}
                       />
                     </div>
-                    <button 
-                      type="button" 
-                      className="config-stepper-btn" 
+                    <button
+                      type="button"
+                      className="config-stepper-btn"
                       onClick={() => setMaxSources(prev => Math.max(1, prev - 5))}
                       disabled={isRunning || maxSources <= 1}
                       title="تقليل المصادر (-5)"
                     >
                       -
                     </button>
-                    <button 
-                      type="button" 
-                      className="config-stepper-btn" 
+                    <button
+                      type="button"
+                      className="config-stepper-btn"
                       onClick={() => setMaxSources(prev => Math.min(1000, prev + 5))}
                       disabled={isRunning || maxSources >= 1000}
                       title="زيادة المصادر (+5)"
@@ -959,13 +905,13 @@ function App() {
                   </div>
 
                   {/* Range slider synchronized */}
-                  <input 
-                    type="range" 
-                    min="1" 
-                    max="100" 
-                    value={Math.min(100, Math.max(1, maxSources))} 
-                    onChange={(e) => setMaxSources(Number(e.target.value))} 
-                    disabled={isRunning} 
+                  <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    value={Math.min(100, Math.max(1, maxSources))}
+                    onChange={(e) => setMaxSources(Number(e.target.value))}
+                    disabled={isRunning}
                   />
 
                   {/* Quick Preset Buttons */}
@@ -985,7 +931,7 @@ function App() {
                   </div>
 
                   {/* Live Warning if high number */}
-                  {maxSources > 50 && (
+                  {maxSources > 50 && Boolean(loc.sourcesLiveWarn) && (
                     <div className="config-live-warning">
                       <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
                       <span>{loc.sourcesLiveWarn}</span>
@@ -995,23 +941,23 @@ function App() {
               </div>
 
               <div className="sidebar-section">
-                <button 
+                <button
                   className={`action-btn ${isRunning ? 'btn-danger' : 'btn-primary pulse-animation'}`}
                   onClick={isRunning ? handleStop : handleStart}
                 >
                   {isRunning ? <><Square size={20} /> {loc.stop}</> : <><Play size={20} /> {loc.start}</>}
                 </button>
-                <button 
-                  className="action-btn btn-success" 
+                <button
+                  className="action-btn btn-success"
                   disabled={isRunning || !sessionId}
                   onClick={handleSave}
                   title={loc.save}
                 >
                   <Save size={20} /> {loc.save}
                 </button>
-                <button 
-                  className="action-btn" 
-                  style={{ background: 'var(--text-secondary)' }} 
+                <button
+                  className="action-btn"
+                  style={{ background: 'var(--text-secondary)' }}
                   disabled={isRunning || !sessionId}
                   onClick={handleExport}
                   title={loc.export}
@@ -1023,7 +969,7 @@ function App() {
 
             {/* WORKSPACE */}
             <div className="workspace-area">
-              
+
               {/* BROWSER VIEW */}
               <div className="glass-panel browser-container" style={{ height: `${browserHeight}px`, flex: 'none', aspectRatio: '1/1', maxHeight: '60vh' }}>
                 <div className="browser-header">
@@ -1056,15 +1002,17 @@ function App() {
                       color: crawlFinished ? '#34d399' : '#f87171',
                       marginBottom: '16px',
                       fontSize: '0.9rem',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      width: '100%',
+                      boxSizing: 'border-box'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '8px', background: crawlFinished ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)', flexShrink: 0 }}>
                         {crawlFinished ? <CheckCircle2 size={20} style={{ color: '#10b981' }} /> : <AlertCircle size={20} style={{ color: '#ef4444' }} />}
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
                         <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>
-                          {crawlFinished 
-                            ? (lang === 'ar' ? 'اكتملت مهمة الزحف بنجاح' : 'Crawl Completed Successfully') 
+                          {crawlFinished
+                            ? (lang === 'ar' ? 'اكتملت مهمة الزحف بنجاح' : 'Crawl Completed Successfully')
                             : (lang === 'ar' ? 'توقفت عملية الزحف' : 'Crawl Stopped')}
                         </span>
                         <span style={{ fontSize: '0.85rem', opacity: 0.95, color: crawlFinished ? '#a7f3d0' : '#fca5a5' }}>
@@ -1183,7 +1131,7 @@ function App() {
                 <p className="history-subtitle">{lang === 'ar' ? 'سجل العمليات وبيانات الزحف المحفوظة محلياً' : 'Locally stored crawl history and sessions'}</p>
               </div>
             </div>
-            
+
             <div className="history-table-container">
               <table className="history-table" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
                 <thead>
@@ -1210,29 +1158,29 @@ function App() {
                         </span>
                       </td>
                       <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-                         <div className="history-actions-cell">
-                           <button 
-                             className="btn-icon btn-action-view" 
-                             title={loc.viewDetails}
-                             onClick={() => handleViewSession(session)}
-                           >
-                             <Eye size={16} />
-                           </button>
-                           <button 
-                             className={`btn-icon btn-action-download ${downloadingId === session.id ? 'spin-animation' : ''}`} 
-                             title={loc.downloadData}
-                             onClick={() => handleDownloadSession(session.id, session.topic)}
-                           >
-                             <Download size={16} />
-                           </button>
-                           <button 
-                             className="btn-icon btn-danger-hover" 
-                             title={loc.deleteSession}
-                             onClick={() => handleDeleteSession(session.id)}
-                           >
-                             <Trash2 size={16} />
-                           </button>
-                         </div>
+                        <div className="history-actions-cell">
+                          <button
+                            className="btn-icon btn-action-view"
+                            title={loc.viewDetails}
+                            onClick={() => handleViewSession(session)}
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            className={`btn-icon btn-action-download ${downloadingId === session.id ? 'spin-animation' : ''}`}
+                            title={loc.downloadData}
+                            onClick={() => handleDownloadSession(session.id, session.topic)}
+                          >
+                            <Download size={16} />
+                          </button>
+                          <button
+                            className="btn-icon btn-danger-hover"
+                            title={loc.deleteSession}
+                            onClick={() => handleDeleteSession(session.id)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )) : (
@@ -1249,134 +1197,134 @@ function App() {
           </div>
         )}
 
-      {/* SESSION DETAILS & DATA EXPLORER MODAL */}
-      {selectedSessionId && (
-        <div className="modal-backdrop" onClick={() => setSelectedSessionId(null)}>
-          <div className="session-details-modal" onClick={e => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="modal-header">
-              <div className="modal-title-group">
-                <Database size={22} style={{ color: 'var(--accent-color)' }} />
-                <div>
-                  <h3 className="modal-title">{selectedSessionTopic || loc.sessionDetailsTitle}</h3>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
-                    ID: {selectedSessionId}
-                  </span>
-                </div>
-              </div>
-
-              <div className="modal-header-actions">
-                <button 
-                  className="btn-modal-download"
-                  onClick={() => handleDownloadSession(selectedSessionId, selectedSessionTopic)}
-                  disabled={downloadingId === selectedSessionId}
-                >
-                  <Download size={16} className={downloadingId === selectedSessionId ? 'spin-animation' : ''} />
-                  <span>{downloadingId === selectedSessionId ? loc.downloading : loc.downloadFullJson}</span>
-                </button>
-                <button 
-                  className="btn-modal-close"
-                  onClick={() => setSelectedSessionId(null)}
-                  title={loc.close}
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="modal-body">
-              {loadingDetails ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px', gap: '16px', color: 'var(--text-secondary)' }}>
-                  <RefreshCw size={36} className="spin-animation" style={{ color: 'var(--accent-color)' }} />
-                  <p style={{ fontWeight: 600 }}>{loc.loadingDetails}</p>
-                </div>
-              ) : (
-                <>
-                  {/* Top Stats Grid */}
-                  <div className="modal-stats-grid">
-                    <div className="modal-stat-card">
-                      <span className="modal-stat-label">{loc.sourcesAnalyzed}</span>
-                      <span className="modal-stat-val" style={{ color: '#38bdf8' }}>
-                        {selectedSessionStats?.sources_total ?? selectedSessionSources.length}
-                      </span>
-                    </div>
-                    <div className="modal-stat-card">
-                      <span className="modal-stat-label">{loc.topicsDiscovered}</span>
-                      <span className="modal-stat-val" style={{ color: '#818cf8' }}>
-                        {selectedSessionStats?.topics ?? 0}
-                      </span>
-                    </div>
-                    <div className="modal-stat-card">
-                      <span className="modal-stat-label">{loc.conceptsExtracted}</span>
-                      <span className="modal-stat-val" style={{ color: '#fbbf24' }}>
-                        {selectedSessionStats?.terms ?? 0}
-                      </span>
-                    </div>
-                    <div className="modal-stat-card">
-                      <span className="modal-stat-label">{loc.averageQuality}</span>
-                      <span className="modal-stat-val" style={{ color: '#34d399' }}>
-                        {selectedSessionStats?.avg_quality ? `${Math.round(selectedSessionStats.avg_quality * 100)}%` : '0%'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Sources List Section */}
+        {/* SESSION DETAILS & DATA EXPLORER MODAL */}
+        {selectedSessionId && (
+          <div className="modal-backdrop" onClick={() => setSelectedSessionId(null)}>
+            <div className="session-details-modal" onClick={e => e.stopPropagation()}>
+              {/* Modal Header */}
+              <div className="modal-header">
+                <div className="modal-title-group">
+                  <Database size={22} style={{ color: 'var(--accent-color)' }} />
                   <div>
-                    <div className="modal-section-title">
-                      <Globe size={18} style={{ color: 'var(--accent-color)' }} />
-                      <span>{loc.allCrawledSources} ({selectedSessionSources.length})</span>
+                    <h3 className="modal-title">{selectedSessionTopic || loc.sessionDetailsTitle}</h3>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+                      ID: {selectedSessionId}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="modal-header-actions">
+                  <button
+                    className="btn-modal-download"
+                    onClick={() => handleDownloadSession(selectedSessionId, selectedSessionTopic)}
+                    disabled={downloadingId === selectedSessionId}
+                  >
+                    <Download size={16} className={downloadingId === selectedSessionId ? 'spin-animation' : ''} />
+                    <span>{downloadingId === selectedSessionId ? loc.downloading : loc.downloadFullJson}</span>
+                  </button>
+                  <button
+                    className="btn-modal-close"
+                    onClick={() => setSelectedSessionId(null)}
+                    title={loc.close}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="modal-body">
+                {loadingDetails ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px', gap: '16px', color: 'var(--text-secondary)' }}>
+                    <RefreshCw size={36} className="spin-animation" style={{ color: 'var(--accent-color)' }} />
+                    <p style={{ fontWeight: 600 }}>{loc.loadingDetails}</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Top Stats Grid */}
+                    <div className="modal-stats-grid">
+                      <div className="modal-stat-card">
+                        <span className="modal-stat-label">{loc.sourcesAnalyzed}</span>
+                        <span className="modal-stat-val" style={{ color: '#38bdf8' }}>
+                          {selectedSessionStats?.sources_total ?? selectedSessionSources.length}
+                        </span>
+                      </div>
+                      <div className="modal-stat-card">
+                        <span className="modal-stat-label">{loc.topicsDiscovered}</span>
+                        <span className="modal-stat-val" style={{ color: '#818cf8' }}>
+                          {selectedSessionStats?.topics ?? 0}
+                        </span>
+                      </div>
+                      <div className="modal-stat-card">
+                        <span className="modal-stat-label">{loc.conceptsExtracted}</span>
+                        <span className="modal-stat-val" style={{ color: '#fbbf24' }}>
+                          {selectedSessionStats?.terms ?? 0}
+                        </span>
+                      </div>
+                      <div className="modal-stat-card">
+                        <span className="modal-stat-label">{loc.averageQuality}</span>
+                        <span className="modal-stat-val" style={{ color: '#34d399' }}>
+                          {selectedSessionStats?.avg_quality ? `${Math.round(selectedSessionStats.avg_quality * 100)}%` : '0%'}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="modal-sources-list">
-                      {selectedSessionSources.length > 0 ? selectedSessionSources.map((source, idx) => (
-                        <div key={source.id || idx} className="modal-source-card">
-                          <div className="modal-source-meta">
-                            <div className="modal-source-pills">
-                              <span className="modal-domain-pill">{source.domain || 'WEB'}</span>
-                              <span className="modal-score-pill">
-                                {Math.round((source.quality_score || 0) * 100)}% {lang === 'ar' ? 'جودة' : 'quality'}
-                              </span>
-                              {source.word_count && source.word_count > 0 && (
-                                <span className="modal-words-pill">
-                                  {source.word_count} {loc.wordsCount}
+                    {/* Sources List Section */}
+                    <div>
+                      <div className="modal-section-title">
+                        <Globe size={18} style={{ color: 'var(--accent-color)' }} />
+                        <span>{loc.allCrawledSources} ({selectedSessionSources.length})</span>
+                      </div>
+
+                      <div className="modal-sources-list">
+                        {selectedSessionSources.length > 0 ? selectedSessionSources.map((source, idx) => (
+                          <div key={source.id || idx} className="modal-source-card">
+                            <div className="modal-source-meta">
+                              <div className="modal-source-pills">
+                                <span className="modal-domain-pill">{source.domain || 'WEB'}</span>
+                                <span className="modal-score-pill">
+                                  {Math.round((source.quality_score || 0) * 100)}% {lang === 'ar' ? 'جودة' : 'quality'}
+                                </span>
+                                {source.word_count && source.word_count > 0 && (
+                                  <span className="modal-words-pill">
+                                    {source.word_count} {loc.wordsCount}
+                                  </span>
+                                )}
+                              </div>
+                              {source.crawled_at && (
+                                <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                                  {new Date(source.crawled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               )}
                             </div>
-                            {source.crawled_at && (
-                              <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                                {new Date(source.crawled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+
+                            <h4 className="modal-source-title">
+                              <a href={source.url} target="_blank" rel="noreferrer" title={source.url}>
+                                <span>{source.title || source.url}</span>
+                                <ExternalLink size={14} style={{ opacity: 0.6 }} />
+                              </a>
+                            </h4>
+
+                            {source.summary && (
+                              <div className="modal-source-summary">
+                                <p style={{ margin: 0 }}>{source.summary}</p>
+                              </div>
                             )}
                           </div>
-
-                          <h4 className="modal-source-title">
-                            <a href={source.url} target="_blank" rel="noreferrer" title={source.url}>
-                              <span>{source.title || source.url}</span>
-                              <ExternalLink size={14} style={{ opacity: 0.6 }} />
-                            </a>
-                          </h4>
-
-                          {source.summary && (
-                            <div className="modal-source-summary">
-                              <p style={{ margin: 0 }}>{source.summary}</p>
-                            </div>
-                          )}
-                        </div>
-                      )) : (
-                        <div className="modal-empty-sources">
-                          <AlertCircle size={36} style={{ margin: '0 auto 10px auto', opacity: 0.4 }} />
-                          <p>{loc.noSourcesFound}</p>
-                        </div>
-                      )}
+                        )) : (
+                          <div className="modal-empty-sources">
+                            <AlertCircle size={36} style={{ margin: '0 auto 10px auto', opacity: 0.4 }} />
+                            <p>{loc.noSourcesFound}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       </main>
     </div>

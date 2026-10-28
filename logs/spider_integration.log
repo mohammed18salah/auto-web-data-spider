@@ -1,5 +1,0 @@
-2026-04-25 20:46:13.892 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_integration.log
-2026-04-25 20:46:23.669 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
-2026-04-25 20:46:23.670 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
-2026-04-25 20:46:23.690 | DEBUG    | knowledge_spider.storage.database:get_engine:47 - SQLite engine created at D:\mohammed dev\data spider\knowledge_spider.db
-2026-04-25 20:46:23.694 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db

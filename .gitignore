@@ -1,0 +1,53 @@
+# ── Python ────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.venv/
+venv/
+*.pyo
+*.pyd
+
+# ── Database ──────────────────────────────────────
+*.db
+*.sqlite3
+
+# ── Logs ──────────────────────────────────────────
+logs/
+*.log
+
+# ── Output / Export ───────────────────────────────
+output/
+
+# ── Node.js ───────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+package-lock.json
+
+# ── IDE / Editor ──────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── OS ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Environment ───────────────────────────────────
+.env
+.env.*
+.env.local
+
+# ── Agents / AI ───────────────────────────────────
+.agents/

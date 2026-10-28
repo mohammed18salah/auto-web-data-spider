@@ -1,4 +1,0 @@
-2026-04-25 20:44:55.618 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test-export-session.log
-2026-04-25 20:44:55.618 | INFO     | knowledge_spider.core.session:load_session:93 - Session loaded | id=test-exp... topic='Testing' status=complete
-2026-04-25 20:44:55.629 | INFO     | knowledge_spider.export.exporter:export_json:97 - Exported JSON to D:\mohammed dev\data spider\test_output_dir\spider_test-exp.json
-2026-04-25 20:44:55.632 | INFO     | knowledge_spider.export.exporter:export_csv:130 - Exported 1 sources to CSV at D:\mohammed dev\data spider\test_output_dir\spider_sources_test-exp.csv

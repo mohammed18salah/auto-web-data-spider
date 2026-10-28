@@ -1,8 +1,0 @@
-2026-04-25 19:49:21.039 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test.log
-2026-04-25 19:49:21.039 | INFO     | __main__:<module>:13 - Logger is working — INFO level
-2026-04-25 19:49:21.040 | DEBUG    | __main__:<module>:14 - Logger is working — DEBUG level
-2026-04-25 19:49:21.040 | WARNING  | __main__:<module>:15 - Logger is working — WARNING level
-2026-04-25 19:49:45.729 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test.log
-2026-04-25 19:49:45.730 | INFO     | __main__:<module>:14 - Logger is working — INFO level
-2026-04-25 19:49:45.731 | DEBUG    | __main__:<module>:15 - Logger is working — DEBUG level
-2026-04-25 19:49:45.731 | WARNING  | __main__:<module>:16 - Logger is working — WARNING level

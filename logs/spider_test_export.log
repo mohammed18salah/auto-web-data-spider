@@ -1,8 +1,0 @@
-2026-04-25 20:44:55.360 | DEBUG    | knowledge_spider.utils.logger:setup_logger:68 - Logger initialised. Session log → logs\spider_test_export.log
-2026-04-25 20:44:55.389 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db
-2026-04-25 20:44:55.400 | DEBUG    | knowledge_spider.storage.database:create_session:79 - Session created: test-export-session (topic=Testing)
-2026-04-25 20:44:55.405 | DEBUG    | knowledge_spider.storage.database:create_topic:149 - Topic created: 'Testing' depth=0
-2026-04-25 20:44:55.411 | DEBUG    | knowledge_spider.storage.database:create_source:250 - Source saved: http://example.com (score=0.90)
-2026-04-25 20:44:55.610 | INFO     | knowledge_spider.core.config:load_config:209 - Config loaded from D:\mohammed dev\data spider\config.toml
-2026-04-25 20:44:55.610 | DEBUG    | knowledge_spider.core.config:load_config:210 -   max_depth=3 max_sources=200 trusted_domains=8
-2026-04-25 20:44:55.612 | INFO     | knowledge_spider.storage.database:create_db_and_tables:60 - Database tables ensured at D:\mohammed dev\data spider\knowledge_spider.db

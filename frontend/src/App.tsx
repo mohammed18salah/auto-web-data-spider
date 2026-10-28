@@ -4,14 +4,15 @@ import {
   Play, Square, Save, Download, Globe,
   Terminal, Activity, RefreshCw, Home, Languages, Trash2,
   Eye, X, ExternalLink, AlertCircle, Info, AlertTriangle, Layers, Hash,
-  HelpCircle, CheckCircle2
+  HelpCircle, CheckCircle2, Share2
 } from 'lucide-react';
 import axios from 'axios';
 import './index.css';
+import { KnowledgeGraphView } from './components/KnowledgeGraphView';
 
 const API_BASE = 'http://localhost:8000/api';
 
-type Page = 'home' | 'history';
+type Page = 'home' | 'history' | 'graph';
 type Lang = 'ar' | 'en';
 
 interface LogEntry {
@@ -45,6 +46,7 @@ const t = {
     title: 'Auto Web Data Spider',
     home: 'الرئيسية',
     history: 'الداتا السابقة',
+    graph: 'مخطط المعرفة',
     settings: 'الإعدادات',
     timeSince: 'الوقت منذ بدء العمل',
     buttonsBox: 'مربع الأزرار',
@@ -129,6 +131,7 @@ const t = {
     title: 'Auto Web Data Spider',
     home: 'Home',
     history: 'History',
+    graph: 'Knowledge Graph',
     settings: 'Settings',
     timeSince: 'Time since start',
     buttonsBox: 'Control Panel',
@@ -243,10 +246,15 @@ function App() {
   const loc = t[lang];
 
   const [historyList, setHistoryList] = useState<SessionHistoryItem[]>([]);
+  const [historySearch, setHistorySearch] = useState<string>('');
   const [stopReason, setStopReason] = useState<string>('');
   const [crawlFinished, setCrawlFinished] = useState<boolean>(false);
   const [showDepthGuide, setShowDepthGuide] = useState<boolean>(false);
   const [showSourcesGuide, setShowSourcesGuide] = useState<boolean>(false);
+
+  // Active session all crawled sources for live switching
+  const [liveSourcesList, setLiveSourcesList] = useState<CrawledSourceItem[]>([]);
+  const [activeSourceIndex, setActiveSourceIndex] = useState<number>(-1);
 
   // Detailed view & export modal state
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -317,6 +325,16 @@ function App() {
               });
             }
 
+            if (res.data.sources_total && res.data.sources_total > 0) {
+              axios.get<CrawledSourceItem[]>(`${API_BASE}/session/${sessionId}/sources`)
+                .then(sRes => {
+                  if (sRes.data && sRes.data.length > 0) {
+                    setLiveSourcesList(sRes.data);
+                  }
+                })
+                .catch(() => {});
+            }
+
             if (res.data.status === 'complete' || res.data.status === 'paused') {
               setIsRunning(false);
               const isComp = res.data.status === 'complete';
@@ -342,21 +360,21 @@ function App() {
     setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type, message }]);
   };
 
-  const formatDateTime = (dateStr?: string | null) => {
-    if (!dateStr) return '';
+  const formatDateTime = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return '—';
     try {
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      let hours = d.getHours();
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      const isPm = hours >= 12;
-      hours = hours % 12 || 12;
-      const hh = String(hours).padStart(2, '0');
-      const period = lang === 'ar' ? (isPm ? 'م' : 'ص') : (isPm ? 'PM' : 'AM');
-      return `${yyyy}/${mm}/${dd} • ${hh}:${minutes} ${period}`;
+      const datePart = d.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      const timePart = d.toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      return `${datePart} ${timePart}`;
     } catch {
       return dateStr;
     }
@@ -412,6 +430,8 @@ function App() {
     setCurrentDomain('');
     setCurrentSummary('');
     setCurrentScore(0);
+    setLiveSourcesList([]);
+    setActiveSourceIndex(-1);
     addLog('sys', `${loc.connecting} ${searchQuery}...`);
 
     try {
@@ -449,7 +469,6 @@ function App() {
       const userReason = lang === 'ar' ? 'تم إيقاف عملية الزحف يدوياً بواسطة المستخدم.' : 'Crawl stopped manually by user.';
       setStopReason(userReason);
       setCrawlFinished(false);
-      addLog('info', `⏸️ ${userReason}`);
       addLog('info', userReason);
     }
   };
@@ -558,8 +577,10 @@ function App() {
   };
 
   const renderLogs = () => logs.map((log, idx) => (
-    <div key={idx} className={`log-line ${log.type}`}>
-      <span className="timestamp">[{log.time}]</span> [{log.type.toUpperCase()}] {log.message}
+    <div key={idx} className={`log-line ${log.type}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <span className="timestamp" dir="ltr">[{log.time}]</span>
+      <span className="log-badge">[{log.type.toUpperCase()}]</span>
+      <span className="log-text">{log.message}</span>
     </div>
   ));
 
@@ -580,6 +601,13 @@ function App() {
           >
             <Home size={17} />
             <span>{loc.home}</span>
+          </button>
+          <button
+            className={`nav-pill ${page === 'graph' ? 'active' : ''}`}
+            onClick={() => setPage('graph')}
+          >
+            <Share2 size={17} />
+            <span>{loc.graph}</span>
           </button>
           <button
             className={`nav-pill ${page === 'history' ? 'active' : ''}`}
@@ -1042,6 +1070,40 @@ function App() {
                     </div>
                   )}
 
+                  {/* Crawled Sources Switcher Bar (shows all crawled pages, not just the current one) */}
+                  {liveSourcesList.length > 0 && (
+                    <div className="browser-sources-bar">
+                      <div className="sources-bar-label">
+                        <Globe size={13} />
+                        <span>{lang === 'ar' ? `المصادر المفهرسة (${liveSourcesList.length})` : `Indexed (${liveSourcesList.length})`}:</span>
+                      </div>
+                      <div className="sources-pills-list">
+                        {liveSourcesList.map((src, sIdx) => {
+                          const isSelected = activeSourceIndex === sIdx || (activeSourceIndex === -1 && currentUrl === src.url);
+                          return (
+                            <button
+                              key={src.id || sIdx}
+                              type="button"
+                              className={`source-pill-btn ${isSelected ? 'active' : ''}`}
+                              onClick={() => {
+                                setActiveSourceIndex(sIdx);
+                                setCurrentUrl(src.url);
+                                setCurrentTitle(src.title);
+                                setCurrentDomain(src.domain);
+                                setCurrentSummary(src.summary || '');
+                                setCurrentScore(src.quality_score || 0);
+                              }}
+                              title={src.title || src.url}
+                            >
+                              <span className="source-pill-num">{sIdx + 1}</span>
+                              <span>{src.title ? (src.title.length > 20 ? src.title.slice(0, 20) + '...' : src.title) : src.domain}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {currentTitle || currentUrl ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
                       {/* Meta header bar */}
@@ -1143,13 +1205,22 @@ function App() {
         {page === 'history' && (
           <div className="glass-panel history-panel">
             <div className="history-header">
-              <div className="history-icon-badge">
-                <Database size={22} />
+              <div className="history-header-left">
+                <div className="history-icon-badge">
+                  <Database size={22} />
+                </div>
+                <div>
+                  <h2>{loc.historyTitle} ({historyList.filter(s => !historySearch.trim() || (s.topic && s.topic.toLowerCase().includes(historySearch.toLowerCase())) || s.id.toLowerCase().includes(historySearch.toLowerCase())).length})</h2>
+                  <p className="history-subtitle">{lang === 'ar' ? 'سجل العمليات وبيانات الزحف المحفوظة محلياً' : 'Locally stored crawl history and sessions'}</p>
+                </div>
               </div>
-              <div>
-                <h2>{loc.historyTitle}</h2>
-                <p className="history-subtitle">{lang === 'ar' ? 'سجل العمليات وبيانات الزحف المحفوظة محلياً' : 'Locally stored crawl history and sessions'}</p>
-              </div>
+              <input
+                type="text"
+                className="history-search-input"
+                placeholder={lang === 'ar' ? 'بحث في الجلسات بالاسم أو المعرف...' : 'Search sessions by topic or ID...'}
+                value={historySearch}
+                onChange={e => setHistorySearch(e.target.value)}
+              />
             </div>
 
             <div className="history-table-container">
@@ -1158,54 +1229,76 @@ function App() {
                   <tr>
                     <th>{loc.sessionID}</th>
                     <th>{loc.topic}</th>
+                    <th>{lang === 'ar' ? 'تاريخ ووقت الجلسة' : 'Date & Time'}</th>
                     <th>{loc.sourcesAnalyzed}</th>
                     <th>{loc.statusCol}</th>
                     <th style={{ textAlign: 'center' }}>{loc.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {historyList.length > 0 ? historyList.map(session => (
-                    <tr key={session.id} style={{ cursor: 'pointer' }} onClick={() => handleViewSession(session)}>
-                      <td className="font-mono text-muted">{session.id.slice(0, 8)}...</td>
-                      <td className="font-semibold">{session.topic}</td>
-                      <td>
-                        <span className="source-count-pill">{session.sources_analyzed || 0}</span>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${session.status}`}>
-                          <span className="status-dot"></span>
-                          {session.status}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-                        <div className="history-actions-cell">
-                          <button
-                            className="btn-icon btn-action-view"
-                            title={loc.viewDetails}
-                            onClick={() => handleViewSession(session)}
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button
-                            className={`btn-icon btn-action-download ${downloadingId === session.id ? 'spin-animation' : ''}`}
-                            title={loc.downloadData}
-                            onClick={() => handleDownloadSession(session.id, session.topic)}
-                          >
-                            <Download size={16} />
-                          </button>
-                          <button
-                            className="btn-icon btn-danger-hover"
-                            title={loc.deleteSession}
-                            onClick={() => handleDeleteSession(session.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )) : (
+                  {historyList.filter(s => !historySearch.trim() || (s.topic && s.topic.toLowerCase().includes(historySearch.toLowerCase())) || s.id.toLowerCase().includes(historySearch.toLowerCase())).length > 0 ? (
+                    historyList
+                      .filter(s => !historySearch.trim() || (s.topic && s.topic.toLowerCase().includes(historySearch.toLowerCase())) || s.id.toLowerCase().includes(historySearch.toLowerCase()))
+                      .map(session => {
+                        const isCorrupted = session.topic && session.topic.includes('???');
+                        const cleanTopic = isCorrupted ? (lang === 'ar' ? 'جلسة بحث سابقة' : 'Previous Crawl Session') : (session.topic || 'Unnamed Topic');
+                        return (
+                          <tr key={session.id} style={{ cursor: 'pointer' }} onClick={() => handleViewSession(session)}>
+                            <td className="font-mono text-muted">{session.id.slice(0, 8)}...</td>
+                            <td className="font-semibold">{cleanTopic}</td>
+                            <td className="font-mono text-muted" dir="ltr" style={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                              {formatDateTime(session.created_at)}
+                            </td>
+                            <td>
+                              <span className="source-count-pill">{session.sources_analyzed || 0}</span>
+                            </td>
+                            <td>
+                              <span className={`status-badge ${session.status}`}>
+                                <span className="status-dot"></span>
+                                {session.status}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                              <div className="history-actions-cell">
+                                <button
+                                  className="btn-icon btn-action-view"
+                                  title={loc.viewDetails}
+                                  onClick={() => handleViewSession(session)}
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                <button
+                                  className="btn-icon btn-action-graph"
+                                  title={lang === 'ar' ? 'عرض شبكة المعرفة' : 'View Knowledge Graph'}
+                                  onClick={() => {
+                                    setSessionId(session.id);
+                                    setPage('graph');
+                                  }}
+                                >
+                                  <Share2 size={16} />
+                                </button>
+                                <button
+                                  className={`btn-icon btn-action-download ${downloadingId === session.id ? 'spin-animation' : ''}`}
+                                  title={loc.downloadData}
+                                  onClick={() => handleDownloadSession(session.id, cleanTopic)}
+                                >
+                                  <Download size={16} />
+                                </button>
+                                <button
+                                  className="btn-icon btn-danger-hover"
+                                  title={loc.deleteSession}
+                                  onClick={() => handleDeleteSession(session.id)}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                  ) : (
                     <tr>
-                      <td colSpan={5} className="no-data-cell">
+                      <td colSpan={6} className="no-data-cell">
                         <Database size={40} className="no-data-icon" />
                         <p>{loc.noData}</p>
                       </td>
@@ -1215,6 +1308,19 @@ function App() {
               </table>
             </div>
           </div>
+        )}
+
+        {page === 'graph' && (
+          <KnowledgeGraphView
+            currentSessionId={sessionId}
+            apiBase={API_BASE}
+            lang={lang}
+            onExpandTopic={(topicName) => {
+              setSearchQuery(topicName);
+              setPage('home');
+              handleStart();
+            }}
+          />
         )}
 
         {/* SESSION DETAILS & DATA EXPLORER MODAL */}
@@ -1234,6 +1340,18 @@ function App() {
                 </div>
 
                 <div className="modal-header-actions">
+                  <button
+                    className="btn-modal-graph"
+                    onClick={() => {
+                      setSessionId(selectedSessionId);
+                      setSelectedSessionId(null);
+                      setPage('graph');
+                    }}
+                    title={lang === 'ar' ? 'استعراض شبكة المعرفة' : 'Explore Knowledge Graph'}
+                  >
+                    <Share2 size={16} />
+                    <span>{lang === 'ar' ? 'مخطط المعرفة' : 'Knowledge Graph'}</span>
+                  </button>
                   <button
                     className="btn-modal-download"
                     onClick={() => handleDownloadSession(selectedSessionId, selectedSessionTopic)}
@@ -1312,24 +1430,8 @@ function App() {
                                 )}
                               </div>
                               {source.crawled_at && (
-                                <span
-                                  dir="ltr"
-                                  style={{
-                                    fontSize: '0.78rem',
-                                    color: 'var(--text-secondary)',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    direction: 'ltr',
-                                    unicodeBidi: 'plaintext',
-                                    background: 'rgba(255,255,255,0.05)',
-                                    padding: '3px 8px',
-                                    borderRadius: '6px',
-                                    border: '1px solid var(--card-sub-border)'
-                                  }}
-                                >
-                                  <Clock size={12} style={{ opacity: 0.8 }} />
-                                  <span>{formatDateTime(source.crawled_at)}</span>
+                                <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                                  {new Date(source.crawled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               )}
                             </div>

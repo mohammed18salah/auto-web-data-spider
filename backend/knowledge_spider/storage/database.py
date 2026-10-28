@@ -391,6 +391,25 @@ def get_terms_by_topic(topic_id: int) -> list[TermModel]:
         return db.exec(stmt).all()
 
 
+def get_terms_by_session(session_id: str) -> list[TermModel]:
+    """
+    Return all extracted terms for an entire crawl session ordered by frequency descending.
+
+    Args:
+        session_id: The UUID of the session.
+
+    Returns:
+        List of TermModel rows.
+    """
+    with DBSession(get_engine()) as db:
+        stmt = (
+            select(TermModel)
+            .where(TermModel.session_id == session_id)
+            .order_by(col(TermModel.frequency).desc())
+        )
+        return db.exec(stmt).all()
+
+
 # ── Stats helpers ─────────────────────────────────────────────────────────────
 
 def get_session_stats(session_id: str) -> dict:

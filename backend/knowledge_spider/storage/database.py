@@ -9,7 +9,7 @@ Author: KnowledgeSpider Engine
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -111,7 +111,7 @@ def update_session_status(session_id: str, status: str) -> bool:
             logger.warning(f"update_session_status: session {session_id} not found")
             return False
         row.status = status
-        row.updated_at = datetime.utcnow()
+        row.updated_at = datetime.now(timezone.utc)
         db.add(row)
         db.commit()
         logger.debug(f"Session {session_id} status -> {status}")
@@ -404,3 +404,36 @@ def get_session_stats(session_id: str) -> dict:
             "topics_queued": queued,
             "avg_quality":   avg_q,
         }
+
+
+def delete_session(session_id: str) -> bool:
+    """
+    Delete a session and all its related topics, sources, edges, and terms.
+
+    Args:
+        session_id: The UUID of the session to delete.
+
+    Returns:
+        True if the session existed and was deleted, False otherwise.
+    """
+    with DBSession(get_engine()) as db:
+        session_row = db.get(SessionModel, session_id)
+        if not session_row:
+            return False
+
+        # Delete dependent child rows
+        for term in db.exec(select(TermModel).where(TermModel.session_id == session_id)).all():
+            db.delete(term)
+        for edge in db.exec(select(TopicEdgeModel).where(TopicEdgeModel.session_id == session_id)).all():
+            db.delete(edge)
+        for source in db.exec(select(SourceModel).where(SourceModel.session_id == session_id)).all():
+            db.delete(source)
+        for topic in db.exec(select(TopicModel).where(TopicModel.session_id == session_id)).all():
+            db.delete(topic)
+
+        # Delete the session itself
+        db.delete(session_row)
+        db.commit()
+        logger.info(f"Deleted session {session_id} and all related records")
+        return True
+

@@ -9,6 +9,7 @@ Author: KnowledgeSpider Engine
 
 from __future__ import annotations
 
+import copy
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -179,15 +180,31 @@ def _parse_config(raw: dict) -> Config:
     )
 
 
-def load_config(path: Path = _DEFAULT_CONFIG_PATH) -> Config:
+def _find_config_file(custom_path: Optional[Path] = None) -> Path:
+    """Find config.toml searching standard candidate locations."""
+    if custom_path is not None and Path(custom_path).exists():
+        return Path(custom_path)
+    candidates = [
+        _DEFAULT_CONFIG_PATH,
+        Path.cwd() / "config.toml",
+        Path(__file__).resolve().parent.parent.parent / "config.toml",
+        Path(__file__).resolve().parent.parent / "config.toml",
+    ]
+    for p in candidates:
+        if p.exists():
+            return p
+    return _DEFAULT_CONFIG_PATH
+
+
+def load_config(path: Optional[Path] = None) -> Config:
     """
     Parse config.toml and cache the result as a module-level singleton.
 
     Subsequent calls return the cached instance without re-reading the file,
-    unless force=True is used via reset_config().
+    unless force=True is used via reset_config() or reload_config().
 
     Args:
-        path: Path to the config.toml file.
+        path: Path to the config.toml file, or None to auto-locate.
 
     Returns:
         Validated Config instance.
@@ -198,15 +215,16 @@ def load_config(path: Path = _DEFAULT_CONFIG_PATH) -> Config:
     """
     global _config_singleton
 
-    if _config_singleton is not None:
+    if _config_singleton is not None and path is None:
         return _config_singleton
 
-    if not path.exists():
-        raise FileNotFoundError(f"config.toml not found at {path.resolve()}")
+    config_path = _find_config_file(path)
+    if not config_path.exists():
+        raise FileNotFoundError(f"config.toml not found at {config_path.resolve()}")
 
-    raw = toml.load(path)
+    raw = toml.load(config_path)
     _config_singleton = _parse_config(raw)
-    logger.info(f"Config loaded from {path.resolve()}")
+    logger.info(f"Config loaded from {config_path.resolve()}")
     logger.debug(
         f"  max_depth={_config_singleton.crawler.max_depth} "
         f"max_sources={_config_singleton.crawler.max_sources} "
@@ -227,6 +245,18 @@ def get_config() -> Config:
     return _config_singleton
 
 
+def reload_config(path: Optional[Path] = None) -> Config:
+    """
+    Clear the cached singleton and re-read configuration from disk.
+
+    Returns:
+        Freshly loaded Config instance.
+    """
+    global _config_singleton
+    _config_singleton = None
+    return load_config(path)
+
+
 def reset_config() -> None:
     """
     Clear the singleton so the next get_config() re-reads from disk.
@@ -235,3 +265,56 @@ def reset_config() -> None:
     """
     global _config_singleton
     _config_singleton = None
+
+
+def get_session_config(overrides: Optional[dict] = None) -> Config:
+    """
+    Return a detached deep copy of the configuration for a specific session.
+    Prevents per-crawl overrides from corrupting the global singleton.
+
+    Args:
+        overrides: Optional nested dictionary of config updates.
+
+    Returns:
+        Isolated Config instance.
+    """
+    cfg = copy.deepcopy(get_config())
+    if overrides:
+        for section, values in overrides.items():
+            if hasattr(cfg, section) and isinstance(values, dict):
+                sub = getattr(cfg, section)
+                for k, v in values.items():
+                    if hasattr(sub, k):
+                        setattr(sub, k, v)
+            elif hasattr(cfg, section):
+                setattr(cfg, section, values)
+    return cfg
+
+
+def update_config(updates: dict) -> Config:
+    """
+    Update the global config singleton in-memory safely.
+    Useful when settings are modified from UI or API endpoints.
+
+    Args:
+        updates: Dict of config changes e.g. {"crawler": {"max_depth": 2}}
+
+    Returns:
+        Updated Config singleton.
+    """
+    cfg = get_config()
+    for section, values in updates.items():
+        if hasattr(cfg, section) and isinstance(values, dict):
+            sub = getattr(cfg, section)
+            for k, v in values.items():
+                if hasattr(sub, k):
+                    setattr(sub, k, v)
+        elif hasattr(cfg, section):
+            setattr(cfg, section, values)
+
+    if hasattr(cfg, "scoring") and hasattr(cfg.scoring, "validate_weights"):
+        cfg.scoring.validate_weights()
+
+    logger.info("Global config singleton updated successfully")
+    return cfg
+

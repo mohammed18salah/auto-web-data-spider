@@ -14,6 +14,7 @@ from datetime import datetime
 from knowledge_spider.core.config import Config, get_config
 from knowledge_spider.core.session import (
     STATUS_RUNNING,
+    STATUS_PAUSED,
     load_session,
     save_session_state,
     mark_session_complete,
@@ -50,9 +51,20 @@ class CrawlerOrchestrator:
         # Internal counters to respect config limits
         self.sources_collected = 0
         self.start_time = time.time()
+        self._stop_requested = False
 
         # Seed the queue if this is a fresh session
         self._seed_initial_topic()
+
+    def stop(self) -> None:
+        """Signal the orchestrator to stop crawling gracefully."""
+        self._stop_requested = True
+        logger.info(f"Stop signal received for session {self.session_id[:8]}")
+
+    @property
+    def is_stopped(self) -> bool:
+        """Return True if a stop signal has been requested."""
+        return self._stop_requested
 
     def _seed_initial_topic(self) -> None:
         """Create the depth=0 root topic if it doesn't exist."""
@@ -196,6 +208,11 @@ class CrawlerOrchestrator:
 
         try:
             while True:
+                # Stop check
+                if self._stop_requested:
+                    logger.info(f"Crawl loop received stop request for session {self.session_id[:8]}")
+                    break
+
                 # Limit Checks
                 if self.sources_collected >= self.cfg.crawler.max_sources:
                     logger.info(f"Reached max sources limit ({self.cfg.crawler.max_sources}). Stopping.")
@@ -224,6 +241,9 @@ class CrawlerOrchestrator:
 
                 # Process URLs
                 for url in urls:
+                    if self._stop_requested:
+                        logger.info("Stopping URL processing due to cancel signal")
+                        break
                     # Break inner loop if limits reached
                     if self.sources_collected >= self.cfg.crawler.max_sources or self._is_time_up():
                         break
@@ -244,8 +264,10 @@ class CrawlerOrchestrator:
             logger.exception(f"Orchestrator fatal error: {e}")
             raise
         finally:
-            # If we exit the loop normally (not crash/ctrl+c), mark complete
-            if not self._is_time_up() and self.sources_collected < self.cfg.crawler.max_sources:
+            if self._stop_requested:
+                save_session_state(self.session_id, STATUS_PAUSED)
+                logger.info(f"Session {self.session_id[:8]} marked as paused following stop request.")
+            elif not self._is_time_up() and self.sources_collected < self.cfg.crawler.max_sources:
                 mark_session_complete(self.session_id)
 
         logger.info(f"Orchestrator finished. Collected {self.sources_collected} sources.")

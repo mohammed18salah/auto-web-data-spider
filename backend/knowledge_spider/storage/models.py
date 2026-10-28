@@ -9,7 +9,7 @@ Author: KnowledgeSpider Engine
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlmodel import Field, SQLModel
@@ -33,8 +33,8 @@ class SessionModel(SQLModel, table=True):
         default="running",
         description="One of: running | paused | complete",
     )
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     config_snapshot: str = Field(
         default="{}",
         description="JSON-serialised copy of config.toml used for this session",
@@ -64,7 +64,7 @@ class TopicModel(SQLModel, table=True):
         description="One of: queued | processing | done | skipped",
     )
     is_seed: bool = Field(default=False, description="True only for the root seed topic")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ── SourceModel ───────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ class SourceModel(SQLModel, table=True):
         description="SHA-256 of normalised page text — dedup key",
     )
     word_count: int = Field(default=0, description="Number of words in extracted text")
-    crawled_at: datetime = Field(default_factory=datetime.utcnow)
+    crawled_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ── TopicEdgeModel ────────────────────────────────────────────────────────────

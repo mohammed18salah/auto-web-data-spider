@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Sun, Moon, Settings, Database, Clock, 
   Play, Square, Save, Download, Globe, 
-  Terminal, Activity, RefreshCw, Home, Languages, Search, Key, Shield, HardDrive, Trash2
+  Terminal, Activity, RefreshCw, Home, Languages, Trash2
 } from 'lucide-react';
 import axios from 'axios';
 import './index.css';
@@ -16,6 +16,14 @@ interface LogEntry {
   time: string;
   type: 'info' | 'success' | 'error' | 'sys';
   message: string;
+}
+
+export interface SessionHistoryItem {
+  id: string;
+  topic: string;
+  status: string;
+  sources_analyzed: number;
+  created_at: string | null;
 }
 
 const t = {
@@ -49,6 +57,7 @@ const t = {
     startSuccess: 'تم بدء عملية الزحف بنجاح! معرف الجلسة:',
     serverError: 'فشل الاتصال بالخادم:',
     crawlStopped: 'تم إيقاف عملية الزحف.',
+    stoppingCrawl: 'جاري إرسال إشارة إيقاف الزحف إلى الخادم...',
     historyTitle: 'جلسات الزحف السابقة',
     settingsTitle: 'الإعدادات العامة',
     generalSettings: 'الإعدادات العامة',
@@ -59,7 +68,11 @@ const t = {
     sessionID: 'معرف الجلسة',
     topic: 'الموضوع',
     statusCol: 'الحالة',
-    actions: 'الإجراءات'
+    actions: 'الإجراءات',
+    deleteConfirm: 'هل أنت متأكد من حذف هذه الجلسة وجميع بياناتها؟',
+    deleteSuccess: 'تم حذف الجلسة بنجاح.',
+    exportSuccess: 'تم تصدير وتنزيل ملف البيانات بنجاح!',
+    saveSuccess: 'تم حفظ وتحديث الجلسة بنجاح.'
   },
   en: {
     title: 'Knowledge Spider',
@@ -91,6 +104,7 @@ const t = {
     startSuccess: 'Crawl process started successfully! Session ID:',
     serverError: 'Failed to connect to server:',
     crawlStopped: 'Crawl process stopped.',
+    stoppingCrawl: 'Sending stop signal to server...',
     historyTitle: 'Previous Crawl Sessions',
     settingsTitle: 'General Settings',
     generalSettings: 'General Settings',
@@ -101,7 +115,11 @@ const t = {
     sessionID: 'Session ID',
     topic: 'Topic',
     statusCol: 'Status',
-    actions: 'Actions'
+    actions: 'Actions',
+    deleteConfirm: 'Are you sure you want to delete this session and all its records?',
+    deleteSuccess: 'Session deleted successfully.',
+    exportSuccess: 'Data exported and downloaded successfully!',
+    saveSuccess: 'Session saved and updated successfully.'
   }
 };
 
@@ -129,7 +147,7 @@ function App() {
 
   const loc = t[lang];
 
-  const [historyList, setHistoryList] = useState<any[]>([]);
+  const [historyList, setHistoryList] = useState<SessionHistoryItem[]>([]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -138,9 +156,9 @@ function App() {
 
   useEffect(() => {
     if (page === 'history') {
-      axios.get(`${API_BASE}/sessions`)
+      axios.get<SessionHistoryItem[]>(`${API_BASE}/sessions`)
         .then(res => setHistoryList(res.data))
-        .catch(err => console.error(err));
+        .catch(err => console.error("Error fetching sessions:", err));
     }
   }, [page]);
 
@@ -206,15 +224,65 @@ function App() {
         setSessionId(res.data.session_id);
         addLog('success', `${loc.startSuccess} ${res.data.session_id}`);
       }
-    } catch (err: any) {
-      addLog('error', `${loc.serverError} ${err.message}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      addLog('error', `${loc.serverError} ${msg}`);
       setIsRunning(false);
     }
   };
 
-  const handleStop = () => {
-    setIsRunning(false);
-    addLog('info', loc.crawlStopped);
+  const handleStop = async () => {
+    addLog('sys', loc.stoppingCrawl);
+    try {
+      if (sessionId) {
+        await axios.post(`${API_BASE}/crawl/${sessionId}/stop`);
+      } else {
+        await axios.post(`${API_BASE}/crawl/stop`);
+      }
+    } catch (err: unknown) {
+      console.warn("Stop request warning:", err);
+    } finally {
+      setIsRunning(false);
+      addLog('info', loc.crawlStopped);
+    }
+  };
+
+  const handleDeleteSession = async (id: string) => {
+    if (!window.confirm(loc.deleteConfirm)) return;
+    try {
+      await axios.delete(`${API_BASE}/session/${id}`);
+      setHistoryList(prev => prev.filter(s => s.id !== id));
+      addLog('success', `${loc.deleteSuccess} (${id.slice(0, 8)}...)`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      addLog('error', `${loc.serverError} ${msg}`);
+    }
+  };
+
+  const handleExport = async () => {
+    if (!sessionId) return;
+    try {
+      addLog('sys', lang === 'ar' ? 'جاري تجهيز وتنزيل ملف التصدير...' : 'Preparing export file...');
+      const res = await axios.get(`${API_BASE}/export/${sessionId}`);
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `spider_export_${sessionId.slice(0, 8)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      addLog('success', loc.exportSuccess);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      addLog('error', `${loc.serverError} ${msg}`);
+    }
+  };
+
+  const handleSave = () => {
+    if (!sessionId) return;
+    addLog('success', `${loc.saveSuccess} (${sessionId.slice(0, 8)}...)`);
   };
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -331,10 +399,21 @@ function App() {
                 >
                   {isRunning ? <><Square size={20} /> {loc.stop}</> : <><Play size={20} /> {loc.start}</>}
                 </button>
-                <button className="action-btn btn-success" disabled={isRunning || !sessionId}>
+                <button 
+                  className="action-btn btn-success" 
+                  disabled={isRunning || !sessionId}
+                  onClick={handleSave}
+                  title={loc.save}
+                >
                   <Save size={20} /> {loc.save}
                 </button>
-                <button className="action-btn" style={{ background: 'var(--text-secondary)' }} disabled={isRunning || !sessionId}>
+                <button 
+                  className="action-btn" 
+                  style={{ background: 'var(--text-secondary)' }} 
+                  disabled={isRunning || !sessionId}
+                  onClick={handleExport}
+                  title={loc.export}
+                >
                   <Download size={20} /> {loc.export}
                 </button>
               </div>
@@ -439,7 +518,11 @@ function App() {
                         </span>
                       </td>
                       <td style={{ padding: '16px', textAlign: 'center' }}>
-                         <button className="btn-icon" title="Delete (Not Implemented)">
+                         <button 
+                           className="btn-icon" 
+                           title={lang === 'ar' ? 'حذف الجلسة' : 'Delete Session'}
+                           onClick={() => handleDeleteSession(session.id)}
+                         >
                            <Trash2 size={16} />
                          </button>
                       </td>

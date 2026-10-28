@@ -10,7 +10,7 @@ Author: KnowledgeSpider Engine
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -55,8 +55,8 @@ def create_session(seed_topic: str, config: Optional[Config] = None) -> SessionM
         id=session_id,
         seed_topic=seed_topic.strip(),
         status=STATUS_RUNNING,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
         config_snapshot=cfg.to_json(),
     )
 

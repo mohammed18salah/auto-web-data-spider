@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import random
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import httpx
@@ -102,7 +102,7 @@ def fetch_page(url: str, config: Optional[Config] = None) -> Optional[Dict[str, 
                 "status_code": status,
                 "html": html_content,
                 "headers": {},
-                "fetched_at": datetime.utcnow().isoformat(),
+                "fetched_at": datetime.now(timezone.utc).isoformat(),
             }
 
     except PlaywrightTimeoutError:

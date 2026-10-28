@@ -34,8 +34,8 @@ create_db_and_tables()
 setup_logger("api_backend")
 
 app = FastAPI(
-    title="KnowledgeSpider API",
-    description="Secure REST API backend for KnowledgeSpider autonomous engine and desktop interface",
+    title="Auto Web Data Spider API",
+    description="Secure REST API backend for Auto Web Data Spider autonomous engine and desktop interface",
     version="1.0.0",
 )
 

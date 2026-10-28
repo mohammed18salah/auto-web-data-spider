@@ -332,7 +332,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
 
       ctx.save();
       ctx.scale(dpr, dpr);
-      
+
       // Pure deep space black background
       ctx.fillStyle = '#020408';
       ctx.fillRect(0, 0, width, height);
@@ -511,7 +511,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
       const hitRadius = Math.max(baseRadius + 14, 26);
       const dx = n.x! - x;
       const dy = n.y! - y;
-      
+
       // Node circle hit
       if (dx * dx + dy * dy <= hitRadius * hitRadius) {
         return n;
@@ -663,8 +663,8 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               )}
             </div>
             <p className="graph-subtitle">
-              {lang === 'ar' 
-                ? 'استكشاف بصري تفاعلي للأشخاص والزملاء، الجامعات، والمفاهيم المترابطة' 
+              {lang === 'ar'
+                ? 'استكشاف بصري تفاعلي للأشخاص والزملاء، الجامعات، والمفاهيم المترابطة'
                 : 'Interactive visual exploration of peers, institutions, and connected concepts'}
               {graphData?.stats && (
                 <span className="graph-stats-subtext">
@@ -687,8 +687,8 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             {searchQuery && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="graph-search-clear"
                 onClick={() => setSearchQuery('')}
                 title={lang === 'ar' ? 'مسح' : 'Clear'}
